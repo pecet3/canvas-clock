@@ -1,17 +1,18 @@
 #include "lvgl.h"
 #include "display.h"
+#include "esp_log.h"
 #include <time.h>
 #include <stdio.h>
 static const char *TAG = "Clock";
 static lv_obj_t *clock_label;
 
-void create_clock_ui(void)
+static void create_clock_ui(void)
 {
     display_mux_lock();
     clock_label = lv_label_create(lv_scr_act());
     lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_text_font(clock_label, lv_font_default(), 0);
-    lv_label_set_text(clock_label, "00:00:00");
+    lv_label_set_text(clock_label, "Loading...");
     display_mux_unlock();
 }
 static void clock_timer_cb(lv_timer_t *timer)
@@ -27,13 +28,11 @@ static void clock_timer_cb(lv_timer_t *timer)
     lv_label_set_text(clock_label, buf);
 }
 
-void clock_start(void)
+lv_obj_t *clock_init(void)
 {
     create_clock_ui();
     lv_timer_t *timer = lv_timer_create(clock_timer_cb, 1000, NULL);
-}
+    ESP_LOGI(TAG, "initialized");
 
-lv_obj_t *clock_get_lvgl_obj(void)
-{
     return clock_label;
 }
