@@ -16,18 +16,21 @@ void scene_set(scene_t scene)
 {
     ESP_LOGI(TAG, "currenct scene: %d set to: %d", current_scene, scene);
     display_mux_lock();
-    if (current_scene == SCENE_CLOCK)
+    lv_obj_add_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
+
+    switch (scene)
     {
+    case SCENE_CLOCK:
         lv_obj_clear_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
-    }
-    else
-    {
-        lv_obj_add_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
+        break;
+
+    case SCENE_CANVAS:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
+        break;
     }
-    display_mux_unlock();
     current_scene = scene;
+    display_mux_unlock();
 }
 
 void scene_init()
