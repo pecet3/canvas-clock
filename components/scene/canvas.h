@@ -1,0 +1,18 @@
+
+
+#include "lvgl.h"
+#pragma once
+
+typedef struct canvas_pixel
+{
+    int x;
+    int y;
+    int color;
+} canvas_pixel_t;
+
+void canvas_start(void);
+void canvas_draw_pixel(int32_t x, int32_t y, bool color_index);
+void canvas_draw_pixels(canvas_pixel_t *pixels, size_t count);
+void canvas_fill_color(uint32_t color);
+void canvas_draw_buf(char *ptr);
+lv_obj_t *canvas_get_lvgl_obj(void);

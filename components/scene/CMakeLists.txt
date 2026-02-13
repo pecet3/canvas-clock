@@ -1,0 +1,13 @@
+idf_component_register(
+    SRCS 
+        "clock.c"
+        "canvas.c"
+        "scene.c"
+    INCLUDE_DIRS 
+        "."
+    PRIV_REQUIRES 
+        driver
+        esp_lcd
+        lvgl
+        display
+)

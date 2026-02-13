@@ -1,0 +1,8 @@
+{
+    "idf.currentSetup": "/home/pc/esp-idf",
+    "idf.port": "/dev/ttyUSB0",
+    "idf.flashType": "UART",
+    "liveServer.settings.port": 5501,
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.pythonProjects": []
+}

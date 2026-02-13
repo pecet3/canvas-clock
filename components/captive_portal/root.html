@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Canvas 128x64 - Drawing</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-family: Arial, sans-serif;
+                background-color: #747474;
+            }
+
+            #canvas {
+                border: 1px solid #ffffff;
+                cursor: crosshair;
+                background-color: white;
+                image-rendering: pixelated;
+                image-rendering: crisp-edges;
+                scale: 3;
+                margin: 64px;
+            }
+
+            .controls {
+                margin-top: 20px;
+                display: flex;
+                gap: 15px;
+                align-items: center;
+            }
+
+            .color-btn {
+                width: 60px;
+                height: 60px;
+                border: 3px solid #333;
+                cursor: pointer;
+                transition: transform 0.1s;
+            }
+
+            .color-btn:hover {
+                transform: scale(1.1);
+            }
+
+            .color-btn.active {
+                border-color: #0066cc;
+                border-width: 4px;
+            }
+
+            #black {
+                background-color: black;
+            }
+
+            #white {
+                background-color: white;
+            }
+
+            .brush-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .brush-controls label {
+                font-size: 14px;
+                font-weight: bold;
+            }
+
+            .brush-size-btns {
+                display: flex;
+                gap: 8px;
+            }
+
+            .brush-btn {
+                width: 40px;
+                height: 40px;
+                border: 2px solid #333;
+                background: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                transition: all 0.1s;
+            }
+
+            .brush-btn:hover {
+                transform: scale(1.1);
+            }
+
+            .brush-btn.active {
+                border-color: #0066cc;
+                border-width: 3px;
+                background-color: #e3f2fd;
+            }
+
+            .status {
+                margin-top: 10px;
+                padding: 8px 15px;
+                border-radius: 5px;
+                font-size: 14px;
+            }
+
+            .connected {
+                background-color: #4caf50;
+                color: white;
+            }
+
+            .disconnected {
+                background-color: #f44336;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Canvas 128x64 - Drawing</h1>
+
+        <canvas id="canvas" width="128" height="64"></canvas>
+
+        <div class="controls">
+            <div
+                class="color-btn active"
+                id="black"
+                onclick="selectColor(1)"
+                title="Black (1)"
+            ></div>
+            <div
+                class="color-btn"
+                id="white"
+                onclick="selectColor(0)"
+                title="White (0)"
+            ></div>
+
+            <div class="brush-controls">
+                <label>Brush Size:</label>
+                <div class="brush-size-btns">
+                    <div class="brush-btn active" onclick="selectBrushSize(1)">
+                        1
+                    </div>
+                    <div class="brush-btn" onclick="selectBrushSize(2)">2</div>
+                    <div class="brush-btn" onclick="selectBrushSize(3)">3</div>
+                    <div class="brush-btn" onclick="selectBrushSize(5)">5</div>
+                </div>
+            </div>
+        </div>
+        <button id="reset-btn">RESET</button>
+        <div class="status disconnected" id="status">Disconnected</div>
+
+        <script>
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            const statusDiv = document.getElementById("status");
+            const resetBtn = document.getElementById("reset-btn");
+            let currentColor = 0;
+            let brushSize = 1;
+            let isDrawing = false;
+            let ws = null;
+            let pixels = "";
+            let sendInterval = null;
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, 128, 64);
+
+            function connectWebSocket() {
+                const wsUrl = `ws://${window.location.host}/ws`;
+
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    statusDiv.textContent = "Connected";
+                    statusDiv.className = "status connected";
+                    startSendInterval();
+                };
+
+                ws.onclose = () => {
+                    statusDiv.textContent = "Disconnected";
+                    statusDiv.className = "status disconnected";
+                    stopSendInterval();
+                    setTimeout(connectWebSocket, 3000);
+                };
+
+                ws.onerror = (error) => {
+                    console.error("WebSocket error:", error);
+                };
+            }
+
+            function startSendInterval() {
+                if (sendInterval) return;
+                sendInterval = setInterval(() => {
+                    if (
+                        pixels.length > 0 &&
+                        ws &&
+                        ws.readyState === WebSocket.OPEN
+                    ) {
+                        ws.send(pixels);
+                        console.log(pixels);
+                        pixels = "";
+                    }
+                }, 7);
+            }
+
+            function stopSendInterval() {
+                if (sendInterval) {
+                    clearInterval(sendInterval);
+                    sendInterval = null;
+                }
+            }
+
+            function selectColor(color) {
+                currentColor = color;
+                document
+                    .getElementById("black")
+                    .classList.toggle("active", color === 1);
+                document
+                    .getElementById("white")
+                    .classList.toggle("active", color === 0);
+            }
+
+            function selectBrushSize(size) {
+                brushSize = size;
+                document.querySelectorAll(".brush-btn").forEach((btn) => {
+                    btn.classList.remove("active");
+                });
+                event.target.classList.add("active");
+            }
+
+            function drawPixel(x, y, color) {
+                ctx.fillStyle = color === 1 ? "black" : "white";
+
+                const halfSize = Math.floor(brushSize / 2);
+
+                for (let dy = -halfSize; dy <= halfSize; dy++) {
+                    for (let dx = -halfSize; dx <= halfSize; dx++) {
+                        const px = x + dx;
+                        const py = y + dy;
+
+                        if (px >= 0 && px < 128 && py >= 0 && py < 64) {
+                            ctx.fillRect(px, py, 1, 1);
+                            pixels = pixels + `${px} ${py} ${color} `;
+                        }
+                    }
+                }
+            }
+
+            function getCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+                return { x, y };
+            }
+
+            canvas.addEventListener("mousedown", (e) => {
+                isDrawing = true;
+                const { x, y } = getCoordinates(e);
+                drawPixel(x, y, currentColor);
+            });
+
+            canvas.addEventListener("mousemove", (e) => {
+                if (!isDrawing) return;
+                const { x, y } = getCoordinates(e);
+                drawPixel(x, y, currentColor);
+            });
+
+            canvas.addEventListener("mouseup", () => {
+                isDrawing = false;
+            });
+
+            canvas.addEventListener("mouseleave", () => {
+                isDrawing = false;
+            });
+
+            canvas.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                const touch = e.touches[0];
+                const { x, y } = getCoordinates(touch);
+                drawPixel(x, y, currentColor);
+            });
+
+            canvas.addEventListener("touchmove", (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                const { x, y } = getCoordinates(touch);
+                drawPixel(x, y, currentColor);
+            });
+
+            canvas.addEventListener("touchend", (e) => {
+                e.preventDefault();
+                isDrawing = false;
+            });
+
+            resetBtn.addEventListener("click", (e) => {
+                ctx.fillStyle = currentColor === 1 ? "black" : "white";
+                ctx.fillRect(0, 0, 128, 64);
+                ws.send(`R${currentColor}`);
+            });
+            connectWebSocket();
+        </script>
+    </body>
+</html>

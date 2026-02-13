@@ -1,0 +1,12 @@
+#include <stdio.h>
+
+typedef struct
+{
+    double usd_mid;
+    double eur_mid;
+    double gbp_mid;
+    double czk_mid;
+} fetch_data_t;
+
+void get_fetch_data(fetch_data_t *dest);
+void data_fetcher_init(void);
