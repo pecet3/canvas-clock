@@ -20,7 +20,7 @@
 #include "lwip/dns.h"
 #include "cJSON.h"
 #include "data_fetcher.h"
-/* Constants that aren't configurable in menuconfig */
+
 #define WEB_SERVER "api.nbp.pl"
 #define WEB_PORT "80"
 #define WEB_PATH "/api/exchangerates/tables/a?format=json"
@@ -32,7 +32,7 @@ static const char *REQUEST = "GET " WEB_PATH " HTTP/1.0\r\n"
                              "User-Agent: esp-idf/1.0 esp32\r\n"
                              "\r\n";
 
-static fetch_data_t fetched_data;
+static fetch_data_t fetched_data = {0};
 static SemaphoreHandle_t data_mutex;
 
 void set_time_from_http_header(const char *date_str)
@@ -54,11 +54,11 @@ void set_time_from_http_header(const char *date_str)
     ESP_LOGI(TAG, "Date is set from http header");
 }
 
-void get_fetch_data(fetch_data_t *dest)
+void get_fetch_data(fetch_data_t *data)
 {
     if (xSemaphoreTake(data_mutex, portMAX_DELAY) == pdTRUE)
     {
-        *dest = fetched_data;
+        *data = fetched_data;
         xSemaphoreGive(data_mutex);
         return;
     }

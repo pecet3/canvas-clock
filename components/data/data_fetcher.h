@@ -1,6 +1,7 @@
+#pragma once
 #include <stdio.h>
 
-typedef struct
+typedef struct fetch_data
 {
     double usd_mid;
     double eur_mid;
@@ -8,5 +9,5 @@ typedef struct
     double czk_mid;
 } fetch_data_t;
 
-void get_fetch_data(fetch_data_t *dest);
+void get_fetch_data(fetch_data_t *data);
 void data_fetcher_init(void);

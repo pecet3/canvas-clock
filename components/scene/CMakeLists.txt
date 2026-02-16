@@ -3,6 +3,7 @@ idf_component_register(
         "clock.c"
         "canvas.c"
         "scene.c"
+        "currency.c"
     INCLUDE_DIRS 
         "."
     PRIV_REQUIRES 
@@ -10,4 +11,5 @@ idf_component_register(
         esp_lcd
         lvgl
         display
+        data
 )
