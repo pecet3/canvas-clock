@@ -14,7 +14,7 @@ static const char *TAG = "Canvas";
 lv_obj_t *canvas_init(void)
 {
     display_mux_lock();
-    canvas = lv_canvas_create(lv_scr_act());
+    canvas = lv_canvas_create(NULL);
     lv_canvas_set_buffer(canvas, canvas_buffer, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
     lv_obj_center(canvas);
 

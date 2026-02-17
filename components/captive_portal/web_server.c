@@ -199,7 +199,7 @@ void on_close_socket(httpd_handle_t hd, int sockfd)
     }
     if (active_ws_connections <= 1)
     {
-        scene_set(SCENE_CLOCK);
+        scene_set(SCENE_MAIN);
     }
     ESP_LOGI(TAG, "Session closed. Active connections: %d", active_ws_connections);
 }

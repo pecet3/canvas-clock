@@ -4,6 +4,9 @@ idf_component_register(
         "canvas.c"
         "scene.c"
         "currency.c"
+        "font_changa_24i_num.c"
+        "font_terminus_12.c"
+        "font.c"
     INCLUDE_DIRS 
         "."
     PRIV_REQUIRES 

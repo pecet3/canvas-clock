@@ -3,16 +3,29 @@
 #include "esp_log.h"
 #include <time.h>
 #include <stdio.h>
+#include "font.h"
 static const char *TAG = "Clock";
+static lv_obj_t *clock_screen;
 static lv_obj_t *clock_label;
+static lv_obj_t *date_label;
 
 static void create_clock_ui(void)
 {
     display_mux_lock();
-    clock_label = lv_label_create(lv_scr_act());
-    lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_text_font(clock_label, lv_font_default(), 0);
-    lv_label_set_text(clock_label, "Loading...");
+    clock_screen = lv_obj_create(NULL);
+    lv_obj_set_style_bg_color(clock_screen, lv_color_white(), 0);
+
+    clock_label = lv_label_create(clock_screen);
+    lv_obj_set_style_text_font(clock_label, get_font_changa24i_num(), 0);
+    lv_obj_set_style_text_color(clock_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, -10);
+    lv_label_set_text(clock_label, "00:00:00");
+
+    date_label = lv_label_create(clock_screen);
+    lv_obj_set_style_text_font(date_label, get_font_terminus12(), 0);
+    lv_obj_set_style_text_color(date_label, lv_color_hex(0xAAAAAA), 0);
+    lv_obj_align_to(date_label, clock_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+    lv_label_set_text(date_label, "2024-01-01");
     display_mux_unlock();
 }
 static void clock_timer_cb(lv_timer_t *timer)
@@ -22,17 +35,22 @@ static void clock_timer_cb(lv_timer_t *timer)
     time(&now);
     localtime_r(&now, &timeinfo);
 
-    char buf[9];
-    snprintf(buf, sizeof(buf), "%02d:%02d:%02d",
+    char buf_clock[9];
+    snprintf(buf_clock, sizeof(buf_clock), "%02d:%02d:%02d",
              timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-    lv_label_set_text(clock_label, buf);
+    lv_label_set_text(clock_label, buf_clock);
+
+    char buf_date[16];
+    strftime(buf_date, sizeof(buf_date), "%Y-%m-%d", &timeinfo);
+    lv_label_set_text(date_label, buf_date);
 }
 
 lv_obj_t *clock_init(void)
 {
     create_clock_ui();
+
     lv_timer_t *timer = lv_timer_create(clock_timer_cb, 1000, NULL);
     ESP_LOGI(TAG, "initialized");
 
-    return clock_label;
+    return clock_screen;
 }

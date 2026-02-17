@@ -28,7 +28,6 @@ void scene_set(scene_t scene)
     lv_obj_add_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(currency_obj, LV_OBJ_FLAG_HIDDEN);
-
     switch (scene)
     {
     case SCENE_CLOCK:
@@ -37,6 +36,7 @@ void scene_set(scene_t scene)
         break;
     case SCENE_CANVAS:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
+        canvas_fill_color(0);
         is_main_scene = false;
         break;
     case SCENE_CURRENCY:
@@ -44,6 +44,7 @@ void scene_set(scene_t scene)
         is_main_scene = false;
         break;
     case SCENE_MAIN:
+        lv_obj_clear_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
         is_main_scene = true;
     default:
         break;
@@ -55,20 +56,20 @@ void scene_set(scene_t scene)
 }
 static void main_scene_task(void *arg)
 {
-    static uint32_t data_update_counter = 30;
+    static uint32_t data_update_timer = 20;
     while (1)
     {
         vTaskDelay((MAIN_SCENE_DURATION_SEC * 1000) / portTICK_PERIOD_MS);
-        if (data_update_counter < 1)
+        if (data_update_timer < 1)
         {
-            data_update_counter = 60 * 15;
+            data_update_timer = 60 * 60 * 12;
             fetch_data_t data = {0};
             get_fetch_data(&data);
             ESP_LOGI(TAG, "data update");
             currency_update(&data);
         }
-        data_update_counter = data_update_counter - MAIN_SCENE_DURATION_SEC;
-        ESP_LOGI(TAG, "data update counter: %d", data_update_counter);
+        data_update_timer = data_update_timer - MAIN_SCENE_DURATION_SEC;
+        ESP_LOGI(TAG, "data update counter: %d", data_update_timer);
 
         if (!is_main_scene)
         {
@@ -97,10 +98,10 @@ static void main_scene_task(void *arg)
 void scene_init()
 {
     canvas_obj = canvas_init();
-    clock_obj = clock_init();
     currency_obj = currency_init();
+    clock_obj = clock_init();
 
-    xTaskCreate(main_scene_task, "LVGL", 4096, NULL, 5, NULL);
+    xTaskCreate(main_scene_task, "MainScene", 4096, NULL, 5, NULL);
 
     ESP_LOGI(TAG, "initalized");
 }

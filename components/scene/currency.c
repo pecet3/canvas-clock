@@ -3,53 +3,26 @@
 #include "esp_log.h"
 #include "data_fetcher.h"
 #include <stdio.h>
-
+#include "font.h"
 static const char *TAG = "currency";
 
 static lv_obj_t *currency_screen;
-static lv_obj_t *usd_label;
-static lv_obj_t *eur_label;
-static lv_obj_t *gbp_label;
-static lv_obj_t *czk_label;
+static lv_obj_t *currency_label;
+static char currency_text[64];
 
-static void create_row(lv_obj_t *parent, const char *name, lv_obj_t **value_label)
-{
-    lv_obj_t *row = lv_obj_create(parent);
-    lv_obj_set_width(row, lv_pct(100));
-    lv_obj_set_height(row, LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_all(row, 5, 0);
-
-    lv_obj_t *name_label = lv_label_create(row);
-    lv_label_set_text(name_label, name);
-
-    *value_label = lv_label_create(row);
-    lv_label_set_text(*value_label, "...");
-}
-
-static void create_currency_ui(void)
+static void create_currency_objects(void)
 {
     display_mux_lock();
 
-    currency_screen = lv_obj_create(lv_scr_act());
+    currency_screen = lv_obj_create(NULL);
     lv_obj_set_size(currency_screen, lv_pct(100), lv_pct(100));
     lv_obj_center(currency_screen);
 
-    lv_obj_set_flex_flow(currency_screen, LV_FLEX_FLOW_COLUMN);
-
-    create_row(currency_screen, "USD:", &usd_label);
-    create_row(currency_screen, "EUR:", &eur_label);
-    create_row(currency_screen, "GBP:", &gbp_label);
-    create_row(currency_screen, "CZK:", &czk_label);
+    currency_label = lv_label_create(currency_screen);
+    lv_label_set_text(currency_label, "loading\n");
+    lv_obj_set_style_text_font(currency_label, get_font_terminus12(), 0);
 
     display_mux_unlock();
-}
-
-lv_obj_t *currency_init(void)
-{
-    create_currency_ui();
-    ESP_LOGI(TAG, "currency screen created");
-    return currency_screen;
 }
 
 void currency_update(fetch_data_t *data)
@@ -59,19 +32,19 @@ void currency_update(fetch_data_t *data)
 
     display_mux_lock();
 
-    char buf[32];
+    snprintf(currency_text, sizeof(currency_text),
+             "1 USD = %.4f PLN\n1 EUR = %.4f PLN\n1 GBP = %.4f PLN\n",
+             data->usd_mid, data->eur_mid, data->gbp_mid);
 
-    snprintf(buf, sizeof(buf), "%.4f", data->usd_mid);
-    lv_label_set_text(usd_label, buf);
-
-    snprintf(buf, sizeof(buf), "%.4f", data->eur_mid);
-    lv_label_set_text(eur_label, buf);
-
-    snprintf(buf, sizeof(buf), "%.4f", data->gbp_mid);
-    lv_label_set_text(gbp_label, buf);
-
-    snprintf(buf, sizeof(buf), "%.4f", data->czk_mid);
-    lv_label_set_text(czk_label, buf);
-
+    lv_label_set_text(currency_label, currency_text);
     display_mux_unlock();
+}
+
+lv_obj_t *currency_init(void)
+{
+    create_currency_objects();
+    fetch_data_t empty_data = {0};
+    currency_update(&empty_data);
+    ESP_LOGI(TAG, "currency screen created");
+    return currency_screen;
 }
