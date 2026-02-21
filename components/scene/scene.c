@@ -19,9 +19,11 @@ static lv_obj_t *currency_obj;
 static scene_t current_scene = SCENE_CLOCK;
 static bool is_main_scene = true;
 
-extern void canvas_load_buf_nvs_tunsafe(const char *nvs_key);
+extern void canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
-static void scene_set_tunsafe(scene_t scene)
+extern void canvas_fill_color_locked(uint32_t color);
+
+static void scene_set_locked(scene_t scene)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
     lv_obj_add_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
@@ -35,11 +37,12 @@ static void scene_set_tunsafe(scene_t scene)
         break;
     case SCENE_CANVAS_DRAW:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
+        canvas_fill_color_locked(0);
+
         is_main_scene = false;
         break;
     case SCENE_CANVAS_SHOW:
         const char *nvs_key = canvas_get_nvs_key(1);
-        canvas_load_buf_nvs_tunsafe(nvs_key);
 
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
         is_main_scene = false;
@@ -92,16 +95,16 @@ static void main_scene_task(void *arg)
         switch (current_scene)
         {
         case SCENE_CLOCK:
-            scene_set_tunsafe(SCENE_CURRENCY);
+            scene_set_locked(SCENE_CURRENCY);
             break;
         case SCENE_CURRENCY:
-            scene_set_tunsafe(SCENE_CANVAS_SHOW);
+            scene_set_locked(SCENE_CANVAS_SHOW);
             break;
         case SCENE_CANVAS_SHOW:
-            scene_set_tunsafe(SCENE_CLOCK);
+            scene_set_locked(SCENE_CLOCK);
             break;
         default:
-            scene_set_tunsafe(SCENE_CLOCK);
+            scene_set_locked(SCENE_CLOCK);
             break;
         }
         is_main_scene = true;
@@ -115,7 +118,7 @@ void scene_set(scene_t scene)
 
     display_mux_lock();
 
-    scene_set_tunsafe(scene);
+    scene_set_locked(scene);
     display_mux_unlock();
 }
 

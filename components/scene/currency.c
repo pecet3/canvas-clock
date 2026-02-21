@@ -10,7 +10,7 @@ static lv_obj_t *currency_screen;
 static lv_obj_t *currency_label;
 static char currency_text[128];
 
-static void create_currency_objects_tunsafe(void)
+static void create_currency_objects_locked(void)
 {
     currency_screen = lv_obj_create(lv_scr_act());
     lv_obj_set_size(currency_screen, lv_pct(100), lv_pct(100));
@@ -38,7 +38,7 @@ void currency_update(fetch_data_t *data)
 lv_obj_t *currency_init(void)
 {
     display_mux_lock();
-    create_currency_objects_tunsafe();
+    create_currency_objects_locked();
     fetch_data_t empty_data = {0};
     display_mux_unlock();
 

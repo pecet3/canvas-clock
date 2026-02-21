@@ -133,7 +133,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 break;
             case 'S':
                 const char save_char = (char)ws_pkt.payload[1];
-                canvas_save_buf_nvs(1);
+                canvas_save_slot(1);
                 ESP_LOGI(TAG, "SAVING CANVAS");
 
                 break;

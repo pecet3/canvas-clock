@@ -32,3 +32,68 @@ menu "WiFi Config"
             
 
 endmenu
+Oto rozwiązanie zadań z przesłanego obrazka, przygotowane zgodnie z Twoim schematem:
+
+
+
+
+## Jakub Pacewicz (Nr albumu: 93183 Kierunek: INLN1) Nr zestawu: 49
+
+
+## TEST C
+
+
+###- Zadanie 1
+###- Korzystamy ze wzoru na liczbę e: lim (1 + a/n)^(bn) = exp(a * b)
+###- W naszym przypadku a = 9, b = 8
+###- lim (1 + 9/n)^(8n) = exp(9 * 8) = exp(72)
+###- Wynik poprawny Odp. 4
+
+###- Zadanie 2
+###- Badamy stopnie wielomianów w liczniku i mianowniku:
+###- W punkcie 2) najwyższa potęga to n^8 w obu częściach ułamka.
+###- Granica to stosunek współczynników przy najwyższych potęgach: 4/6
+###- lim (4n^8 - 4n^7 - 2) / (6n^8 + 2n^7 - 4) = 4/6
+###- Wynik poprawny Odp. 2
+
+###- Zadanie 3
+###- Sprawdzamy, gdzie stopień licznika jest większy niż stopień mianownika:
+###- W punkcie 1): licznik ma n^8, mianownik n^7.
+###- Ponieważ stopień licznika (8) > stopień mianownika (7), granica dąży do nieskończoności.
+###- lim (3n^8 + 2n^7 - 4) / (7n^7 - 4n^7 - 2) = nieskonczonosc
+###- Wynik poprawny Odp. 1
+
+###- Zadanie 4
+###- Sprawdzamy granicę w punkcie 1) mnożąc przez sprzężenie licznika:
+###- [sqrt(7x+30) - 3] / [6x + 18] * [sqrt(7x+30) + 3] / [sqrt(7x+30) + 3]
+###- = (7x + 30 - 9) / [6(x + 3) * (sqrt(7x+30) + 3)]
+###- = (7x + 21) / [6(x + 3) * (sqrt(7x+30) + 3)] = 7(x+3) / [6(x+3) * (sqrt(7x+30) + 3)]
+###- Po skróceniu (x+3) i podstawieniu x = -3: 7 / [6 * (sqrt(9) + 3)] = 7 / (6 * 6) = 7/36
+###- Wynik poprawny Odp. 1
+
+## TEST D
+
+
+###- Zadanie 1
+###- Przekształcamy wyrażenie pod całką w punkcie 4) i mamy:
+###- x(x(30 + 44x) - 20) - 9 = 44x^3 + 30x^2 - 20x - 9
+###- Następnie korzystamy ze wzoru: int x^k dx = x^(k+1)/(k+1)
+###- int (44x^3 + 30x^2 - 20x - 9) dx = 11x^4 + 10x^3 - 10x^2 - 9x + C
+###- Wynik poprawny Odp. 4
+
+###- Zadanie 2
+###- Całkę w punkcie 1) znajdujemy przez podstawienie:
+###- t = 3 + 6x^4
+###- dt = 24x^3 dx
+###- int 24x^3 / (7*(3 + 6x^4)) dx = int 1/(7t) dt
+###- = 1/7 * ln|t| + C = log(3 + 6x^4)/7 + C
+###- Wynik poprawny Odp. 1
+
+###- Zadanie 3
+###- Tego typu całki rozwiązujemy "przez części":
+###- Dla całki w punkcie 1): u = x, v' = sin(6x)
+###- Stąd: u' = 1, v = -1/6 * cos(6x)
+###- int x * sin(6x) dx = -x/6 * cos(6x) + 1/36 * sin(6x) + C
+###- = 1/36 * (sin(6x) - 6x * cos(6x)) + C = 1/6^2 * (sin(6x) - 6x * cos(6x)) + C
+###- Wynik poprawny Odp. 1
+

@@ -60,15 +60,19 @@ void canvas_draw_buf(char *ptr)
     display_mux_unlock();
 }
 
+void canvas_fill_color_locked(uint32_t color)
+{
+    lv_canvas_fill_bg(canvas, lv_color_hex(color), LV_OPA_COVER);
+}
+
 void canvas_fill_color(uint32_t color)
 {
     display_mux_lock();
-
-    lv_canvas_fill_bg(canvas, lv_color_hex(color), LV_OPA_COVER);
+    canvas_fill_color_locked(color);
     display_mux_unlock();
 }
 
-void canvas_save_buf_nvs_tunsafe(const char *nvs_key)
+void canvas_save_slot_locked(const char *nvs_key)
 {
     nvs_key = "canvas1";
 
@@ -95,7 +99,7 @@ void canvas_save_buf_nvs_tunsafe(const char *nvs_key)
 
     nvs_close(nvs_handle);
 }
-void canvas_load_buf_nvs_tunsafe(const char *nvs_key)
+void canvas_load_slot_locked(const char *nvs_key)
 {
     nvs_key = "canvas1";
     nvs_handle_t nvs_handle;
@@ -135,20 +139,20 @@ const char *canvas_get_nvs_key(int num)
         return NULL;
     }
 }
-void canvas_load_buf_nvs(int slot_num)
+void canvas_load_slot(int slot_num)
 {
     display_mux_lock();
     const char *nvs_key = canvas_get_nvs_key(slot_num);
-    canvas_load_buf_nvs_tunsafe(nvs_key);
+    canvas_load_slot_locked(nvs_key);
     display_mux_unlock();
 }
 
-void canvas_save_buf_nvs(int slot_num)
+void canvas_save_slot(int slot_num)
 {
     display_mux_lock();
     const char *nvs_key = canvas_get_nvs_key(slot_num);
 
-    canvas_save_buf_nvs_tunsafe(nvs_key);
+    canvas_save_slot_locked(nvs_key);
     display_mux_unlock();
 }
 

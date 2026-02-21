@@ -85,7 +85,7 @@ void canvas_fill_color(uint32_t color)
 }
 
 const char *nvs_key = "canvas1";
-void canvas_save_buf_nvs()
+void canvas_save_slot()
 {
     display_mux_lock();
     const uint8_t *buf = lv_canvas_get_buffer(canvas);
@@ -101,7 +101,7 @@ void canvas_save_buf_nvs()
     }
     display_mux_unlock();
 }
-void canvas_load_buf_nvs()
+void canvas_load_slot()
 {
     display_mux_lock();
     size_t buf_size = CANVAS_BUF_SIZE;
