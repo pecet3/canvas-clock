@@ -54,14 +54,24 @@ void set_time_from_http_header(const char *date_str)
     ESP_LOGI(TAG, "Date is set from http header");
 }
 
-void get_fetch_data(fetch_data_t *data)
+bool get_fetch_data(fetch_data_t *data)
 {
+    if (data == NULL)
+    {
+        return false;
+    }
     if (xSemaphoreTake(data_mutex, portMAX_DELAY) == pdTRUE)
     {
-        *data = fetched_data;
+        if (fetched_data.usd_mid == 0 && fetched_data.eur_mid == 0 && fetched_data.gbp_mid == 0 && fetched_data.czk_mid == 0)
+        {
+            xSemaphoreGive(data_mutex);
+            return false;
+        }
+        memcpy(data, &fetched_data, sizeof(fetch_data_t));
         xSemaphoreGive(data_mutex);
-        return;
+        return true;
     }
+    return false;
 }
 
 static void http_get_task(void *pvParameters)

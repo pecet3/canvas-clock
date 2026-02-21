@@ -1,6 +1,6 @@
 idf_component_register(
     SRCS 
-        "dns.c"
+        # "dns.c"
         "web_server.c"
         "captive_portal.c"
 

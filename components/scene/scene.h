@@ -2,7 +2,8 @@
 typedef enum
 {
     SCENE_CLOCK,
-    SCENE_CANVAS,
+    SCENE_CANVAS_DRAW,
+    SCENE_CANVAS_SHOW,
     SCENE_CURRENCY,
     SCENE_MAIN,
 } scene_t;

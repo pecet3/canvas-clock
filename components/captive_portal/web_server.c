@@ -131,6 +131,12 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 int color = atoi(&color_char);
                 canvas_fill_color((uint32_t)color);
                 break;
+            case 'S':
+                const char save_char = (char)ws_pkt.payload[1];
+                canvas_save_buf_nvs(1);
+                ESP_LOGI(TAG, "SAVING CANVAS");
+
+                break;
             default:
                 char *ptr = (char *)ws_pkt.payload;
                 canvas_draw_buf(ptr);
@@ -186,7 +192,7 @@ esp_err_t on_open_socket(httpd_handle_t hd, int sockfd)
     ESP_LOGI(TAG, "New session opened. Active connections: %d", active_ws_connections);
     if (active_ws_connections > 0)
     {
-        scene_set(SCENE_CANVAS);
+        scene_set(SCENE_CANVAS_DRAW);
     }
     return ESP_OK;
 }

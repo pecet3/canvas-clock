@@ -9,5 +9,5 @@ typedef struct fetch_data
     double czk_mid;
 } fetch_data_t;
 
-void get_fetch_data(fetch_data_t *data);
+bool get_fetch_data(fetch_data_t *data);
 void data_fetcher_init(void);

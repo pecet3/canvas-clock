@@ -9,7 +9,7 @@
 #include "data_fetcher.h"
 #include "currency.h"
 
-#define MAIN_SCENE_DURATION_SEC 5
+#define MAIN_SCENE_DURATION_SEC 10
 
 static const char *TAG = "Scene";
 static lv_obj_t *canvas_obj;
@@ -19,12 +19,11 @@ static lv_obj_t *currency_obj;
 static scene_t current_scene = SCENE_CLOCK;
 static bool is_main_scene = true;
 
-void scene_set(scene_t scene)
+extern void canvas_load_buf_nvs_tunsafe(const char *nvs_key);
+extern const char *canvas_get_nvs_key(int num);
+static void scene_set_tunsafe(scene_t scene)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
-
-    display_mux_lock();
-
     lv_obj_add_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(currency_obj, LV_OBJ_FLAG_HIDDEN);
@@ -34,9 +33,15 @@ void scene_set(scene_t scene)
         lv_obj_clear_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
         is_main_scene = false;
         break;
-    case SCENE_CANVAS:
+    case SCENE_CANVAS_DRAW:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
-        canvas_fill_color(0);
+        is_main_scene = false;
+        break;
+    case SCENE_CANVAS_SHOW:
+        const char *nvs_key = canvas_get_nvs_key(1);
+        canvas_load_buf_nvs_tunsafe(nvs_key);
+
+        lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
         is_main_scene = false;
         break;
     case SCENE_CURRENCY:
@@ -46,53 +51,72 @@ void scene_set(scene_t scene)
     case SCENE_MAIN:
         lv_obj_clear_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
         is_main_scene = true;
+        scene = SCENE_CLOCK;
+        break;
     default:
         break;
     }
-
     current_scene = scene;
-
-    display_mux_unlock();
 }
+
 static void main_scene_task(void *arg)
 {
-    static uint32_t data_update_timer = 20;
+    static int data_update_ticker = 20;
     while (1)
     {
         vTaskDelay((MAIN_SCENE_DURATION_SEC * 1000) / portTICK_PERIOD_MS);
-        if (data_update_timer < 1)
+        if (data_update_ticker < 1)
         {
-            data_update_timer = 60 * 60 * 12;
             fetch_data_t data = {0};
-            get_fetch_data(&data);
-            ESP_LOGI(TAG, "data update");
-            currency_update(&data);
+            bool ok = get_fetch_data(&data);
+            if (ok)
+            {
+                ESP_LOGI(TAG, "data update");
+                currency_update(&data);
+                data_update_ticker = 60 * 60 * 12;
+            }
+            else
+            {
+                ESP_LOGI(TAG, "data not ready");
+                data_update_ticker = 20;
+            }
         }
-        data_update_timer = data_update_timer - MAIN_SCENE_DURATION_SEC;
-        ESP_LOGI(TAG, "data update counter: %d", data_update_timer);
+        data_update_ticker = data_update_ticker - MAIN_SCENE_DURATION_SEC;
+        ESP_LOGI(TAG, "data update counter: %d", data_update_ticker);
 
         if (!is_main_scene)
         {
             continue;
         }
+        display_mux_lock();
         switch (current_scene)
         {
         case SCENE_CLOCK:
-            scene_set(SCENE_CURRENCY);
+            scene_set_tunsafe(SCENE_CURRENCY);
             break;
         case SCENE_CURRENCY:
-            scene_set(SCENE_CLOCK);
+            scene_set_tunsafe(SCENE_CANVAS_SHOW);
             break;
-        case SCENE_CANVAS:
+        case SCENE_CANVAS_SHOW:
+            scene_set_tunsafe(SCENE_CLOCK);
             break;
         default:
-            scene_set(SCENE_CLOCK);
+            scene_set_tunsafe(SCENE_CLOCK);
             break;
         }
-        display_mux_lock();
         is_main_scene = true;
         display_mux_unlock();
     }
+}
+
+void scene_set(scene_t scene)
+{
+    ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
+
+    display_mux_lock();
+
+    scene_set_tunsafe(scene);
+    display_mux_unlock();
 }
 
 void scene_init()

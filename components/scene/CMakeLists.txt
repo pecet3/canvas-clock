@@ -6,6 +6,7 @@ idf_component_register(
         "currency.c"
         "font_changa_24i_num.c"
         "font_terminus_12.c"
+        "font_betania_28num.c"
         "font.c"
     INCLUDE_DIRS 
         "."
@@ -14,5 +15,6 @@ idf_component_register(
         esp_lcd
         lvgl
         display
+        nvs_flash
         data
 )
