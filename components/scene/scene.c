@@ -22,7 +22,7 @@ static bool is_autocycle = true;
 extern bool canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
 extern void canvas_fill_color_locked(uint32_t color);
-extern void canvas_set_drawing();
+extern void canvas_set_drawing_locked();
 static void scene_set_locked(scene_t scene)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
@@ -37,7 +37,7 @@ static void scene_set_locked(scene_t scene)
         break;
     case SCENE_CANVAS_DRAW:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
-        canvas_set_drawing();
+        canvas_set_drawing_locked();
         is_autocycle = false;
         break;
     case SCENE_CANVAS_SHOW:
