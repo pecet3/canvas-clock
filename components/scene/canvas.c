@@ -119,7 +119,6 @@ bool canvas_load_slot_locked(const char *nvs_key)
         ESP_LOGI(TAG, "Canvas buffer loaded from NVS with key: %s", nvs_key);
         return true;
     }
-    memcpy(canvas_buffer, buf, buf_size);
     nvs_close(nvs_handle);
 }
 

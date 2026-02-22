@@ -37,7 +37,7 @@ static void scene_set_locked(scene_t scene)
         break;
     case SCENE_CANVAS_DRAW:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
-        canvas_fill_color_locked(0);
+        canvas_set_drawing();
         is_autocycle = false;
         break;
     case SCENE_CANVAS_SHOW:
