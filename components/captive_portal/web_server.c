@@ -50,6 +50,7 @@ struct async_resp_arg
     httpd_handle_t hd;
     int fd;
 };
+static int active_ws_connections = 0;
 
 /*
  * async send function, which we put into the httpd work queue
@@ -92,6 +93,10 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
     if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
+        if (active_ws_connections > 0)
+        {
+            scene_set(SCENE_CANVAS_DRAW);
+        }
         return ESP_OK;
     }
     httpd_ws_frame_t ws_pkt;
@@ -185,15 +190,11 @@ static const httpd_uri_t root_endpoint = {
     .method = HTTP_GET,
     .handler = root_get_handler};
 
-static int active_ws_connections = 0;
 esp_err_t on_open_socket(httpd_handle_t hd, int sockfd)
 {
     active_ws_connections++;
     ESP_LOGI(TAG, "New session opened. Active connections: %d", active_ws_connections);
-    if (active_ws_connections > 0)
-    {
-        scene_set(SCENE_CANVAS_DRAW);
-    }
+
     return ESP_OK;
 }
 

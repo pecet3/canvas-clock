@@ -9,7 +9,7 @@
 #include "data_fetcher.h"
 #include "currency.h"
 
-#define MAIN_SCENE_DURATION_SEC 10
+#define MAIN_SCENE_DURATION_SEC 5
 
 static const char *TAG = "Scene";
 static lv_obj_t *canvas_obj;
@@ -17,12 +17,12 @@ static lv_obj_t *clock_obj;
 static lv_obj_t *currency_obj;
 
 static scene_t current_scene = SCENE_CLOCK;
-static bool is_main_scene = true;
+static bool is_autocycle = true;
 
-extern void canvas_load_slot_locked(const char *nvs_key);
+extern bool canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
 extern void canvas_fill_color_locked(uint32_t color);
-
+extern void canvas_set_drawing();
 static void scene_set_locked(scene_t scene)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
@@ -33,27 +33,29 @@ static void scene_set_locked(scene_t scene)
     {
     case SCENE_CLOCK:
         lv_obj_clear_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
-        is_main_scene = false;
+        is_autocycle = false;
         break;
     case SCENE_CANVAS_DRAW:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
         canvas_fill_color_locked(0);
-
-        is_main_scene = false;
+        is_autocycle = false;
         break;
     case SCENE_CANVAS_SHOW:
         const char *nvs_key = canvas_get_nvs_key(1);
-
+        if (!canvas_load_slot_locked(nvs_key))
+        {
+            canvas_fill_color_locked(0);
+        }
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
-        is_main_scene = false;
+        is_autocycle = false;
         break;
     case SCENE_CURRENCY:
         lv_obj_clear_flag(currency_obj, LV_OBJ_FLAG_HIDDEN);
-        is_main_scene = false;
+        is_autocycle = false;
         break;
     case SCENE_MAIN:
         lv_obj_clear_flag(clock_obj, LV_OBJ_FLAG_HIDDEN);
-        is_main_scene = true;
+        is_autocycle = true;
         scene = SCENE_CLOCK;
         break;
     default:
@@ -64,7 +66,7 @@ static void scene_set_locked(scene_t scene)
 
 static void main_scene_task(void *arg)
 {
-    static int data_update_ticker = 20;
+    static int data_update_ticker = 10;
     while (1)
     {
         vTaskDelay((MAIN_SCENE_DURATION_SEC * 1000) / portTICK_PERIOD_MS);
@@ -81,13 +83,15 @@ static void main_scene_task(void *arg)
             else
             {
                 ESP_LOGI(TAG, "data not ready");
-                data_update_ticker = 20;
+                data_update_ticker = 10;
             }
         }
-        data_update_ticker = data_update_ticker - MAIN_SCENE_DURATION_SEC;
+
+        data_update_ticker -= MAIN_SCENE_DURATION_SEC;
+
         ESP_LOGI(TAG, "data update counter: %d", data_update_ticker);
 
-        if (!is_main_scene)
+        if (!is_autocycle)
         {
             continue;
         }
@@ -107,7 +111,7 @@ static void main_scene_task(void *arg)
             scene_set_locked(SCENE_CLOCK);
             break;
         }
-        is_main_scene = true;
+        is_autocycle = true;
         display_mux_unlock();
     }
 }

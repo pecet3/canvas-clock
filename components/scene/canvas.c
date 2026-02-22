@@ -74,8 +74,6 @@ void canvas_fill_color(uint32_t color)
 
 void canvas_save_slot_locked(const char *nvs_key)
 {
-    nvs_key = "canvas1";
-
     nvs_handle_t nvs_handle;
     esp_err_t err;
 
@@ -99,28 +97,30 @@ void canvas_save_slot_locked(const char *nvs_key)
 
     nvs_close(nvs_handle);
 }
-void canvas_load_slot_locked(const char *nvs_key)
+bool canvas_load_slot_locked(const char *nvs_key)
 {
-    nvs_key = "canvas1";
     nvs_handle_t nvs_handle;
     if (nvs_open("storage", NVS_READONLY, &nvs_handle) != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to open NVS handle");
-        return;
+        return false;
     }
-
     size_t buf_size = CANVAS_BUF_SIZE;
     uint8_t buf[buf_size];
     esp_err_t err = nvs_get_blob(nvs_handle, nvs_key, buf, &buf_size);
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to load canvas buffer from NVS: %s", esp_err_to_name(err));
+        return false;
     }
     else
     {
         lv_canvas_set_buffer(canvas, buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
         ESP_LOGI(TAG, "Canvas buffer loaded from NVS with key: %s", nvs_key);
+        return true;
     }
+    memcpy(canvas_buffer, buf, buf_size);
+    nvs_close(nvs_handle);
 }
 
 const char *canvas_get_nvs_key(int num)
@@ -141,7 +141,9 @@ const char *canvas_get_nvs_key(int num)
 }
 void canvas_load_slot(int slot_num)
 {
+
     display_mux_lock();
+
     const char *nvs_key = canvas_get_nvs_key(slot_num);
     canvas_load_slot_locked(nvs_key);
     display_mux_unlock();
@@ -154,6 +156,12 @@ void canvas_save_slot(int slot_num)
 
     canvas_save_slot_locked(nvs_key);
     display_mux_unlock();
+}
+
+void canvas_set_drawing()
+{
+    lv_canvas_set_buffer(canvas, canvas_buffer,
+                         CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
 }
 
 lv_obj_t *canvas_init(void)
