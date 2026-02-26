@@ -45,7 +45,7 @@ static void create_clock_ui(void)
     lv_obj_set_style_border_width(clock_screen, 0, 0);
 
     clock_label = lv_label_create(clock_screen);
-    lv_obj_set_style_text_font(clock_label, get_font_changa24i_num(), 0);
+    lv_obj_set_style_text_font(clock_label, get_font_workbench_30num(), 0);
     lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, -10);
 
     date_label = lv_label_create(clock_screen);

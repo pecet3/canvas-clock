@@ -137,10 +137,20 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 canvas_fill_color((uint32_t)color);
                 break;
             case 'S':
-                const char save_char = (char)ws_pkt.payload[1];
-                canvas_save_slot(1);
-                ESP_LOGI(TAG, "SAVING CANVAS");
-
+                char temp[3];
+                int len = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
+                memcpy(temp, &ws_pkt.payload[1], len);
+                temp[len] = '\0';
+                uint8_t slot = (uint8_t)atoi(temp);
+                if (slot < 15)
+                {
+                    canvas_save_slot(slot);
+                    ESP_LOGI(TAG, "SAVING CANVAS TO SLOT: %u", slot);
+                }
+                else
+                {
+                    ESP_LOGE(TAG, "Invalid slot number: %u", slot);
+                }
                 break;
             default:
                 char *ptr = (char *)ws_pkt.payload;

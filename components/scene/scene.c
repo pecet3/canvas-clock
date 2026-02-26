@@ -9,7 +9,7 @@
 #include "data_fetcher.h"
 #include "currency.h"
 
-#define MAIN_SCENE_DURATION_SEC 5
+#define MAIN_SCENE_DURATION_SEC 10
 
 static const char *TAG = "Scene";
 static lv_obj_t *canvas_obj;
@@ -23,6 +23,8 @@ extern bool canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
 extern void canvas_fill_color_locked(uint32_t color);
 extern void canvas_set_drawing_locked();
+extern void canvas_set_showing_locked();
+
 static void scene_set_locked(scene_t scene)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
@@ -41,12 +43,8 @@ static void scene_set_locked(scene_t scene)
         is_autocycle = false;
         break;
     case SCENE_CANVAS_SHOW:
-        const char *nvs_key = canvas_get_nvs_key(1);
-        if (!canvas_load_slot_locked(nvs_key))
-        {
-            canvas_fill_color_locked(0);
-        }
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
+        canvas_set_showing_locked();
         is_autocycle = false;
         break;
     case SCENE_CURRENCY:

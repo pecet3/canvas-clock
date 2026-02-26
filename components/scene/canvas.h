@@ -19,5 +19,5 @@ void canvas_fill_color(uint32_t color);
 void canvas_draw_buf(char *ptr);
 lv_obj_t *canvas_get_lvgl_obj(void);
 
-void canvas_save_slot(int slot_num);
-void canvas_load_slot(int slot_num);
+void canvas_save_slot(uint8_t slot_num);
+void canvas_load_slot(uint8_t slot_num);

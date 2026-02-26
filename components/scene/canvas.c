@@ -7,7 +7,8 @@
 #define CANVAS_WIDTH 128
 #define CANVAS_HEIGHT 64
 #define CANVAS_BUF_SIZE (CANVAS_WIDTH * CANVAS_HEIGHT / 8) + 8
-static uint8_t canvas_buffer[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
+static uint8_t drawing_buf[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
+static uint8_t showing_buf[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
 static lv_obj_t *canvas = NULL;
 
 static const char *TAG = "Canvas";
@@ -82,7 +83,7 @@ void canvas_save_slot_locked(const char *nvs_key)
         return;
     ;
     size_t buf_size = CANVAS_BUF_SIZE;
-    nvs_set_blob(nvs_handle, nvs_key, canvas_buffer, buf_size);
+    nvs_set_blob(nvs_handle, nvs_key, drawing_buf, buf_size);
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to save canvas buffer to NVS: %s", esp_err_to_name(err));
@@ -105,7 +106,7 @@ bool canvas_load_slot_locked(const char *nvs_key)
         return false;
     }
     size_t buf_size = CANVAS_BUF_SIZE;
-    uint8_t *buf = canvas_buffer;
+    uint8_t *buf = showing_buf;
     esp_err_t err = nvs_get_blob(nvs_handle, nvs_key, buf, &buf_size);
     nvs_close(nvs_handle);
 
@@ -116,59 +117,84 @@ bool canvas_load_slot_locked(const char *nvs_key)
     }
     else
     {
-        lv_canvas_set_buffer(canvas, buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
+        lv_canvas_set_buffer(canvas, showing_buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
         ESP_LOGI(TAG, "Canvas buffer loaded from NVS with key: %s", nvs_key);
         return true;
     }
 }
-
-const char *canvas_get_nvs_key(int num)
+// nfs
+const char *canvas_get_nvs_key(uint8_t num)
 {
-    switch (num)
-    {
-    case 1:
-        return "canvas1";
-    case 2:
-        return "canvas2";
-    case 3:
-        return "canvas3";
-    case 4:
-        return "canvas4";
-    default:
+    if (num > 15)
         return NULL;
-    }
+    char nvs_key[16];
+    snprintf(nvs_key, sizeof(nvs_key), "canvas%d", num);
+    return strdup(nvs_key);
 }
-void canvas_load_slot(int slot_num)
+void canvas_load_slot(uint8_t slot_num)
 {
-
     display_mux_lock();
 
     const char *nvs_key = canvas_get_nvs_key(slot_num);
+    if (nvs_key == NULL)
+    {
+        ESP_LOGE(TAG, "Invalid slot number: %d", slot_num);
+        display_mux_unlock();
+        return;
+    }
     canvas_load_slot_locked(nvs_key);
     display_mux_unlock();
 }
 
-void canvas_save_slot(int slot_num)
+void canvas_save_slot(uint8_t slot_num)
 {
     display_mux_lock();
     const char *nvs_key = canvas_get_nvs_key(slot_num);
-
+    if (nvs_key == NULL)
+    {
+        ESP_LOGE(TAG, "Invalid slot number: %d", slot_num);
+        display_mux_unlock();
+        return;
+    }
     canvas_save_slot_locked(nvs_key);
     display_mux_unlock();
 }
 
+//
 void canvas_set_drawing_locked()
 {
-    lv_canvas_set_buffer(canvas, canvas_buffer,
+    lv_canvas_set_buffer(canvas, drawing_buf,
                          CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
+}
+
+static uint8_t current_slot = 0;
+void canvas_set_showing_locked()
+{
+    const char *nvs_key = canvas_get_nvs_key(current_slot);
+    if (nvs_key == NULL)
+    {
+        ESP_LOGE(TAG, "Invalid slot number: %d", current_slot);
+        return;
+    }
+    if (!canvas_load_slot_locked(nvs_key))
+    {
+        ESP_LOGE(TAG, "Failed to load canvas slot %d", current_slot);
+        current_slot = 0;
+        canvas_set_showing_locked();
+    }
+    else
+    {
+        current_slot++;
+        lv_canvas_set_buffer(canvas, showing_buf,
+                             CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
+    }
 }
 
 lv_obj_t *canvas_init(void)
 {
     display_mux_lock();
-
     canvas = lv_canvas_create(lv_scr_act());
-    lv_canvas_set_buffer(canvas, canvas_buffer, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
+    lv_canvas_set_buffer(canvas, drawing_buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
     lv_canvas_set_palette(canvas, 0, lv_color_to_32(lv_color_hex(0x000000), LV_OPA_COVER));
     lv_canvas_set_palette(canvas, 1, lv_color_to_32(lv_color_hex(0xFFFFFF), LV_OPA_COVER));
     lv_obj_center(canvas);
