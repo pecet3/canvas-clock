@@ -9,8 +9,6 @@
 #include "data_fetcher.h"
 #include "currency.h"
 
-#define MAIN_SCENE_DURATION_SEC 10
-
 static const char *TAG = "Scene";
 static lv_obj_t *canvas_obj;
 static lv_obj_t *clock_obj;
@@ -64,10 +62,11 @@ static void scene_set_locked(scene_t scene)
 
 static void main_scene_task(void *arg)
 {
-    static int data_update_ticker = 10;
+    // wait for init other depedencies like wifi or data_fetcher
+    vTaskDelay((20 * 1000) / portTICK_PERIOD_MS);
+    static int data_update_ticker = 0;
     while (1)
     {
-        vTaskDelay((MAIN_SCENE_DURATION_SEC * 1000) / portTICK_PERIOD_MS);
         if (data_update_ticker < 1)
         {
             fetch_data_t data = {0};
@@ -76,21 +75,21 @@ static void main_scene_task(void *arg)
             {
                 ESP_LOGI(TAG, "data update");
                 currency_update(&data);
-                data_update_ticker = 60 * 60 * 12;
+                data_update_ticker = 100;
             }
             else
             {
                 ESP_LOGI(TAG, "data not ready");
-                data_update_ticker = 10;
+                data_update_ticker = 0;
             }
         }
-
-        data_update_ticker -= MAIN_SCENE_DURATION_SEC;
+        --data_update_ticker;
 
         ESP_LOGI(TAG, "data update counter: %d", data_update_ticker);
 
         if (!is_autocycle)
         {
+            vTaskDelay((10 * 1000) / portTICK_PERIOD_MS);
             continue;
         }
         display_mux_lock();
@@ -111,6 +110,22 @@ static void main_scene_task(void *arg)
         }
         is_autocycle = true;
         display_mux_unlock();
+
+        switch (current_scene)
+        {
+        case SCENE_CLOCK:
+            vTaskDelay((12 * 1000) / portTICK_PERIOD_MS);
+            break;
+        case SCENE_CURRENCY:
+            vTaskDelay((6 * 1000) / portTICK_PERIOD_MS);
+            break;
+        case SCENE_CANVAS_SHOW:
+            vTaskDelay((8 * 1000) / portTICK_PERIOD_MS);
+            break;
+        default:
+            vTaskDelay((6 * 1000) / portTICK_PERIOD_MS);
+            break;
+        }
     }
 }
 

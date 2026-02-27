@@ -9,8 +9,10 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 #include "nvs_flash.h"
+#include "buzzer.h"
 void app_main(void)
 {
+    buzzer_init();
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {

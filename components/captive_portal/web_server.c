@@ -10,7 +10,7 @@
 #include "lwip/inet.h"
 
 #include "esp_http_server.h"
-
+#include "buzzer.h"
 #include "cJSON.h"
 #include "dns.h"
 #include "canvas.h"
@@ -137,11 +137,11 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 canvas_fill_color((uint32_t)color);
                 break;
             case 'S':
-                char temp[3];
-                int len = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
-                memcpy(temp, &ws_pkt.payload[1], len);
-                temp[len] = '\0';
-                uint8_t slot = (uint8_t)atoi(temp);
+                char tempS[3];
+                int lenS = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
+                memcpy(tempS, &ws_pkt.payload[1], lenS);
+                tempS[lenS] = '\0';
+                uint8_t slot = (uint8_t)atoi(tempS);
                 if (slot < 15)
                 {
                     canvas_save_slot(slot);
@@ -152,9 +152,29 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                     ESP_LOGE(TAG, "Invalid slot number: %u", slot);
                 }
                 break;
+            case 'L':
+                char tempL[3];
+                int lenL = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
+                memcpy(tempL, &ws_pkt.payload[1], lenL);
+                tempL[lenL] = '\0';
+                uint8_t slotL = (uint8_t)atoi(tempL);
+                if (slotL < 15)
+                {
+                    canvas_load_slot(slotL);
+                    ESP_LOGI(TAG, "LOADING CANVAS FROM SLOT: %u", slotL);
+                }
+                else
+                {
+                    ESP_LOGE(TAG, "Invalid slot number: %u", slotL);
+                }
+                break;
+            case 'M':
+                buzzer_play_note_char((char)ws_pkt.payload[1]);
+                break;
             default:
                 char *ptr = (char *)ws_pkt.payload;
                 canvas_draw_buf(ptr);
+                break;
             }
         }
     }
