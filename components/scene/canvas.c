@@ -5,6 +5,9 @@
 #include "canvas.h"
 #include "nvs_flash.h"
 
+#include <stdatomic.h>
+#include <stdint.h>
+
 #define NVS_NAMESPACE "storage"
 #define CANVAS_WIDTH 128
 #define CANVAS_HEIGHT 64
@@ -229,10 +232,19 @@ void canvas_set_drawing_locked()
     ESP_LOGI(TAG, "is drawing");
 }
 
+static _Atomic uint8_t current_slot = 0;
+void canvas_set_current_slot(uint8_t new_value)
+{
+    atomic_store_explicit(&current_slot, new_value, memory_order_relaxed);
+}
+
+uint8_t canvas_get_current_slot()
+{
+    return atomic_load_explicit(&current_slot, memory_order_relaxed);
+}
+
 bool canvas_set_showing_locked()
 {
-    static uint8_t current_slot = 0;
-
     const char *nvs_key = canvas_get_nvs_slot_key(current_slot);
     if (nvs_key == NULL)
     {
@@ -241,21 +253,21 @@ bool canvas_set_showing_locked()
     }
     if (canvas_load_slot_locked(nvs_key))
     {
-        current_slot++;
+        canvas_set_current_slot(canvas_get_current_slot() + 1);
         return true;
     }
 
     ESP_LOGE(TAG, "Failed to load canvas slot %d", current_slot);
 
     // stop recursion if we looped through all slots and found none
-    if (current_slot == MAX_SLOTS)
+    if (canvas_get_current_slot() == MAX_SLOTS)
     {
         ESP_LOGI(TAG, "No more slots to show, resetting to slot 0 and stopping recursion");
         current_slot = 0;
         return canvas_set_showing_locked();
     }
 
-    current_slot++;
+    canvas_set_current_slot(canvas_get_current_slot() + 1);
     canvas_set_showing_locked();
     return true;
 }

@@ -20,3 +20,6 @@ void canvas_draw_buf(char *ptr);
 void canvas_save_slot(uint8_t slot_num);
 void canvas_load_slot(uint8_t slot_num);
 void canvas_delete_slot(uint8_t slot_num);
+
+void canvas_set_current_slot(uint8_t new_value);
+uint8_t canvas_get_current_slot();

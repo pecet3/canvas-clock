@@ -10,6 +10,7 @@
 #include "lwip/sys.h"
 #include "nvs_flash.h"
 #include "buzzer.h"
+#include "alarm.h"
 void app_main(void)
 {
     buzzer_init();
@@ -26,4 +27,5 @@ void app_main(void)
     wifi_init();
     captive_portal_init();
     data_fetcher_init();
+    alarm_init();
 }

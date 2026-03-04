@@ -109,3 +109,16 @@ bool buzzer_play_note_char(char note)
     }
     return true;
 }
+
+bool buzzer_play_note_string(const char *note_str)
+{
+    size_t len = strlen(note_str);
+    for (size_t i = 0; i < len; i++)
+    {
+        if (!buzzer_play_note_char(note_str[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
