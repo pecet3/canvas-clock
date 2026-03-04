@@ -9,20 +9,22 @@
 #include "data_fetcher.h"
 #include "currency.h"
 
-static const char *TAG = "Scene";
-static lv_obj_t *canvas_obj;
-static lv_obj_t *clock_obj;
-static lv_obj_t *currency_obj;
-
-static scene_t current_scene = SCENE_CLOCK;
-static bool is_autocycle = true;
-
 extern bool canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
 extern void canvas_fill_color_locked(uint32_t color);
 extern void canvas_set_drawing_locked();
-extern void canvas_set_showing_locked();
+extern bool canvas_set_showing_locked();
 
+static const char *TAG = "Scene";
+
+static lv_obj_t *canvas_obj;
+static lv_obj_t *clock_obj;
+static lv_obj_t *currency_obj;
+
+const static scene_t default_main_scene = SCENE_CLOCK;
+static scene_t current_scene = default_main_scene;
+
+static bool is_autocycle = true;
 static void scene_set_locked(scene_t scene)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
@@ -42,7 +44,10 @@ static void scene_set_locked(scene_t scene)
         break;
     case SCENE_CANVAS_SHOW:
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
-        canvas_set_showing_locked();
+        if (!canvas_set_showing_locked())
+        {
+            scene = SCENE_CLOCK;
+        }
         is_autocycle = false;
         break;
     case SCENE_CURRENCY:
@@ -83,7 +88,7 @@ static void main_scene_task(void *arg)
                 data_update_ticker = 0;
             }
         }
-        --data_update_ticker;
+        data_update_ticker--;
 
         ESP_LOGI(TAG, "data update counter: %d", data_update_ticker);
 
