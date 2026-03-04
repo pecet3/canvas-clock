@@ -62,7 +62,7 @@ bool get_fetch_data(fetch_data_t *data)
     }
     if (xSemaphoreTake(data_mutex, portMAX_DELAY) == pdTRUE)
     {
-        if (fetched_data.usd_mid == 0 && fetched_data.eur_mid == 0 && fetched_data.gbp_mid == 0 && fetched_data.czk_mid == 0)
+        if (fetched_data.usd_mid == 0 && fetched_data.eur_mid == 0 && fetched_data.gbp_mid == 0 && fetched_data.chf_mid == 0)
         {
             xSemaphoreGive(data_mutex);
             return false;
@@ -210,7 +210,7 @@ static void http_get_task(void *pvParameters)
 
             goto cleanup_and_wait;
         }
-        double usd_mid = 0, eur_mid = 0, gbp_mid = 0, czk_mid = 0;
+        double usd_mid = 0, eur_mid = 0, gbp_mid = 0, chf_mid = 0;
 
         for (int i = 0; i < cJSON_GetArraySize(rates); i++)
         {
@@ -219,7 +219,6 @@ static void http_get_task(void *pvParameters)
             cJSON *mid = cJSON_GetObjectItem(rate, "mid");
             if (code != NULL && mid != NULL)
             {
-                ESP_LOGI(TAG, "Currency: %s, Rate: %.4f", code->valuestring, mid->valuedouble);
                 if (strcmp(code->valuestring, "USD") == 0)
                 {
                     usd_mid = mid->valuedouble;
@@ -232,9 +231,9 @@ static void http_get_task(void *pvParameters)
                 {
                     gbp_mid = mid->valuedouble;
                 }
-                else if (strcmp(code->valuestring, "JPY") == 0)
+                else if (strcmp(code->valuestring, "CHF") == 0)
                 {
-                    czk_mid = mid->valuedouble;
+                    chf_mid = mid->valuedouble;
                 }
             }
         }
@@ -244,7 +243,7 @@ static void http_get_task(void *pvParameters)
             fetched_data.usd_mid = usd_mid;
             fetched_data.eur_mid = eur_mid;
             fetched_data.gbp_mid = gbp_mid;
-            fetched_data.czk_mid = czk_mid;
+            fetched_data.chf_mid = chf_mid;
             xSemaphoreGive(data_mutex);
         }
 

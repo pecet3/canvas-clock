@@ -8,7 +8,6 @@
 #define CANVAS_HEIGHT 64
 #define CANVAS_BUF_SIZE (CANVAS_WIDTH * CANVAS_HEIGHT / 8) + 8
 static uint8_t drawing_buf[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
-static uint8_t showing_buf[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
 static lv_obj_t *canvas = NULL;
 
 static const char *TAG = "Canvas";
@@ -73,6 +72,8 @@ void canvas_fill_color(uint32_t color)
     display_mux_unlock();
 }
 
+// NVS
+
 void canvas_save_slot_locked(const char *nvs_key)
 {
     nvs_handle_t nvs_handle;
@@ -94,7 +95,10 @@ void canvas_save_slot_locked(const char *nvs_key)
     }
 
     err = nvs_commit(nvs_handle);
-
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to commit changes to NVS: %s", esp_err_to_name(err));
+    }
     nvs_close(nvs_handle);
 }
 bool canvas_load_slot_locked(const char *nvs_key)
@@ -106,8 +110,7 @@ bool canvas_load_slot_locked(const char *nvs_key)
         return false;
     }
     size_t buf_size = CANVAS_BUF_SIZE;
-    uint8_t *buf = showing_buf;
-    esp_err_t err = nvs_get_blob(nvs_handle, nvs_key, buf, &buf_size);
+    esp_err_t err = nvs_get_blob(nvs_handle, nvs_key, drawing_buf, &buf_size);
     nvs_close(nvs_handle);
 
     if (err != ESP_OK)
@@ -117,25 +120,46 @@ bool canvas_load_slot_locked(const char *nvs_key)
     }
     else
     {
-        lv_canvas_set_buffer(canvas, showing_buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
         ESP_LOGI(TAG, "Canvas buffer loaded from NVS with key: %s", nvs_key);
         return true;
     }
+    lv_canvas_set_buffer(canvas, drawing_buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
 }
-// nfs
-const char *canvas_get_nvs_key(uint8_t num)
+
+bool canvas_delete_slot_locked(const char *nvs_key)
 {
-    if (num > 15)
+    nvs_handle_t nvs_handle;
+    if (nvs_open("storage", NVS_READWRITE, &nvs_handle) != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to open NVS handle");
+        return false;
+    }
+    esp_err_t err = nvs_erase_key(nvs_handle, nvs_key);
+    nvs_close(nvs_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to delete canvas buffer from NVS: %s", esp_err_to_name(err));
+        return false;
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Canvas buffer deleted from NVS with key: %s", nvs_key);
+        return true;
+    }
+}
+///////
+const char *canvas_get_nvs_slot_key(uint8_t num)
+{
+    if (num > 31 || num < 0)
         return NULL;
     char nvs_key[16];
-    snprintf(nvs_key, sizeof(nvs_key), "canvas%d", num);
+    snprintf(nvs_key, sizeof(nvs_key), "c_slot%d", num);
     return strdup(nvs_key);
 }
 void canvas_load_slot(uint8_t slot_num)
 {
     display_mux_lock();
-
-    const char *nvs_key = canvas_get_nvs_key(slot_num);
+    const char *nvs_key = canvas_get_nvs_slot_key(slot_num);
     if (nvs_key == NULL)
     {
         ESP_LOGE(TAG, "Invalid slot number: %d", slot_num);
@@ -149,7 +173,7 @@ void canvas_load_slot(uint8_t slot_num)
 void canvas_save_slot(uint8_t slot_num)
 {
     display_mux_lock();
-    const char *nvs_key = canvas_get_nvs_key(slot_num);
+    const char *nvs_key = canvas_get_nvs_slot_key(slot_num);
     if (nvs_key == NULL)
     {
         ESP_LOGE(TAG, "Invalid slot number: %d", slot_num);
@@ -159,18 +183,32 @@ void canvas_save_slot(uint8_t slot_num)
     canvas_save_slot_locked(nvs_key);
     display_mux_unlock();
 }
-
-//
-void canvas_set_drawing_locked()
+void canvas_delete_slot(uint8_t slot_num)
 {
-    lv_canvas_set_buffer(canvas, drawing_buf,
-                         CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
+    display_mux_lock();
+    const char *nvs_key = canvas_get_nvs_slot_key(slot_num);
+    if (nvs_key == NULL)
+    {
+        ESP_LOGE(TAG, "Invalid slot number: %d", slot_num);
+        display_mux_unlock();
+        return;
+    }
+    canvas_delete_slot_locked(nvs_key);
+    display_mux_unlock();
 }
 
-static uint8_t current_slot = 0;
+////
+void canvas_set_drawing_locked()
+{
+    canvas_fill_color_locked(0);
+    ESP_LOGI(TAG, "is drawing");
+}
+
 void canvas_set_showing_locked()
 {
-    const char *nvs_key = canvas_get_nvs_key(current_slot);
+    static uint8_t current_slot = 0;
+
+    const char *nvs_key = canvas_get_nvs_slot_key(current_slot);
     if (nvs_key == NULL)
     {
         ESP_LOGE(TAG, "Invalid slot number: %d", current_slot);
@@ -179,14 +217,20 @@ void canvas_set_showing_locked()
     if (!canvas_load_slot_locked(nvs_key))
     {
         ESP_LOGE(TAG, "Failed to load canvas slot %d", current_slot);
-        current_slot = 0;
+        if (current_slot == 31)
+        {
+            current_slot = 0;
+            return;
+        }
+        else
+        {
+            current_slot++;
+        }
         canvas_set_showing_locked();
     }
     else
     {
         current_slot++;
-        lv_canvas_set_buffer(canvas, showing_buf,
-                             CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
     }
 }
 

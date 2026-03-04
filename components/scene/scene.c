@@ -145,7 +145,7 @@ void scene_init()
     currency_obj = currency_init();
     clock_obj = clock_init();
 
-    xTaskCreate(main_scene_task, "MainScene", 4096, NULL, 5, NULL);
+    xTaskCreate(main_scene_task, "MainScene", 16384, NULL, 5, NULL);
 
     ESP_LOGI(TAG, "initalized");
 }

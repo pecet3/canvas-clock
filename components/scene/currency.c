@@ -28,8 +28,8 @@ void currency_update(fetch_data_t *data)
 
     display_mux_lock();
     snprintf(currency_text, sizeof(currency_text),
-             "1 USD = %.4f PLN\n1 EUR = %.4f PLN\n1 GBP = %.4f PLN\n1 CZK = %.4f PLN\n",
-             data->usd_mid, data->eur_mid, data->gbp_mid, data->czk_mid);
+             "1 USD = %.4f PLN\n1 EUR = %.4f PLN\n1 GBP = %.4f PLN\n1 CHF = %.4f PLN\n",
+             data->usd_mid, data->eur_mid, data->gbp_mid, data->chf_mid);
 
     lv_label_set_text(currency_label, currency_text);
     display_mux_unlock();
@@ -39,8 +39,8 @@ lv_obj_t *currency_init(void)
 {
     display_mux_lock();
     create_currency_objects_locked();
-    fetch_data_t empty_data = {0};
     display_mux_unlock();
+    fetch_data_t empty_data = {0};
 
     currency_update(&empty_data);
 

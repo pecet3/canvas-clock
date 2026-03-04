@@ -142,7 +142,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 memcpy(tempS, &ws_pkt.payload[1], lenS);
                 tempS[lenS] = '\0';
                 uint8_t slot = (uint8_t)atoi(tempS);
-                if (slot < 15)
+                if (slot < 31)
                 {
                     canvas_save_slot(slot);
                     ESP_LOGI(TAG, "SAVING CANVAS TO SLOT: %u", slot);
@@ -158,7 +158,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 memcpy(tempL, &ws_pkt.payload[1], lenL);
                 tempL[lenL] = '\0';
                 uint8_t slotL = (uint8_t)atoi(tempL);
-                if (slotL < 15)
+                if (slotL < 31)
                 {
                     canvas_load_slot(slotL);
                     ESP_LOGI(TAG, "LOADING CANVAS FROM SLOT: %u", slotL);
@@ -166,6 +166,22 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 else
                 {
                     ESP_LOGE(TAG, "Invalid slot number: %u", slotL);
+                }
+                break;
+            case 'D':
+                char tempD[3];
+                int lenD = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
+                memcpy(tempD, &ws_pkt.payload[1], lenD);
+                tempD[lenD] = '\0';
+                uint8_t slotD = (uint8_t)atoi(tempD);
+                if (slotD < 31)
+                {
+                    canvas_delete_slot(slotD);
+                    ESP_LOGI(TAG, "DELETING CANVAS SLOT: %u", slotD);
+                }
+                else
+                {
+                    ESP_LOGE(TAG, "Invalid slot number: %u", slotD);
                 }
                 break;
             case 'M':

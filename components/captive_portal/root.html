@@ -225,8 +225,8 @@
           type="number"
           id="save-number"
           min="0"
-          max="15"
-          value="1"
+          max="31"
+          value="0"
         />
         <button id="save-btn">SAVE</button>
       </div>
@@ -236,10 +236,21 @@
           type="number"
           id="load-number"
           min="0"
-          max="15"
-          value="1"
+          max="31"
+          value="0"
         />
         <button id="load-btn">LOAD</button>
+      </div>
+      <div style="flex: 0">
+        <input
+          id="delete-input"
+          type="number"
+          id="delete-number"
+          min="0"
+          max="31"
+          value="0"
+        />
+        <button id="delete-btn">DELETE</button>
       </div>
     </div>
     <div class="piano" id="piano">
@@ -265,6 +276,9 @@
       const saveInput = document.getElementById("save-input");
       const loadBtn = document.getElementById("load-btn");
       const loadInput = document.getElementById("load-input");
+      const deleteBtn = document.getElementById("delete-btn");
+      const deleteInput = document.getElementById("delete-input");
+
       let currentColor = 0;
       let brushSize = 1;
       let isDrawing = false;
@@ -296,6 +310,10 @@
         ws.onerror = (error) => {
           console.error("WebSocket error:", error);
         };
+
+        ws.onmessage = (event) => {
+          console.log(event.data);
+        };
       }
 
       function startSendInterval() {
@@ -303,7 +321,6 @@
         sendInterval = setInterval(() => {
           if (pixels.length > 0 && ws && ws.readyState === WebSocket.OPEN) {
             ws.send(pixels);
-            console.log(pixels);
             pixels = "";
           }
         }, 7);
@@ -416,6 +433,10 @@
 
       loadBtn.addEventListener("click", (e) => {
         ws.send(`L${loadInput.value}`);
+      });
+
+      deleteBtn.addEventListener("click", (e) => {
+        ws.send(`D${deleteInput.value}`);
       });
 
       const piano = document.getElementById("piano");
