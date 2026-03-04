@@ -84,7 +84,9 @@ void canvas_save_slot_locked(const char *nvs_key)
         return;
     ;
     size_t buf_size = CANVAS_BUF_SIZE;
-    nvs_set_blob(nvs_handle, nvs_key, drawing_buf, buf_size);
+    char buf[buf_size];
+    memcpy(buf, drawing_buf, buf_size);
+    nvs_set_blob(nvs_handle, nvs_key, &buf, buf_size);
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to save canvas buffer to NVS: %s", esp_err_to_name(err));
@@ -115,7 +117,7 @@ bool canvas_load_slot_locked(const char *nvs_key)
 
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "Failed to load canvas buffer from NVS: %s", esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to load canvas buffer from NVS: %s KEY: %s", esp_err_to_name(err), nvs_key);
         return false;
     }
     else
@@ -123,7 +125,6 @@ bool canvas_load_slot_locked(const char *nvs_key)
         ESP_LOGI(TAG, "Canvas buffer loaded from NVS with key: %s", nvs_key);
         return true;
     }
-    lv_canvas_set_buffer(canvas, drawing_buf, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
 }
 
 bool canvas_delete_slot_locked(const char *nvs_key)
