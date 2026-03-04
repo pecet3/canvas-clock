@@ -15,8 +15,8 @@ static void create_currency_objects_locked(void)
     currency_screen = lv_obj_create(lv_scr_act());
     lv_obj_set_size(currency_screen, lv_pct(100), lv_pct(100));
     lv_obj_center(currency_screen);
-
     currency_label = lv_label_create(currency_screen);
+    lv_obj_align(currency_label, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_text(currency_label, "loading\n");
     lv_obj_set_style_text_font(currency_label, get_font_terminus12(), 0);
 }

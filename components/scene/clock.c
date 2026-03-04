@@ -42,16 +42,17 @@ static void create_clock_ui(void)
     lv_obj_set_size(clock_screen, lv_pct(100), lv_pct(100));
     lv_obj_center(clock_screen);
     lv_obj_set_style_pad_all(clock_screen, 0, 0);
-    lv_obj_set_style_border_width(clock_screen, 0, 0);
+    lv_obj_set_style_border_width(clock_screen, 1, 0);
 
     clock_label = lv_label_create(clock_screen);
     lv_obj_set_style_text_font(clock_label, get_font_workbench_30num(), 0);
-    lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, -10);
+    lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, -12);
 
     date_label = lv_label_create(clock_screen);
     lv_obj_set_style_text_font(date_label, get_font_terminus12(), 0);
 
-    lv_obj_align_to(date_label, clock_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+    lv_obj_align(date_label, LV_ALIGN_BOTTOM_MID, 0, -4);
+
     lv_label_set_text(date_label, "2024-01-01");
 
     display_mux_unlock();
