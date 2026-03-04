@@ -70,6 +70,22 @@ void canvas_draw_buf(char *ptr)
     }
     display_mux_unlock();
 }
+void canvas_draw_buf_locked(char *ptr)
+{
+    if (ptr == NULL)
+        return;
+    int x, y, color, offset;
+    while (sscanf(ptr, "%d %d %d%n",
+                  &x,
+                  &y,
+                  &color,
+                  &offset) == 3)
+    {
+        lv_canvas_set_px(canvas, x, y,
+                         lv_color_hex(color), LV_OPA_COVER);
+        ptr += offset;
+    }
+}
 void canvas_fill_color_locked(uint32_t color)
 {
     lv_canvas_fill_bg(canvas, lv_color_hex(color), LV_OPA_COVER);
@@ -97,6 +113,7 @@ const char *canvas_get_nvs_slot_key(uint8_t num)
 }
 
 bool canvas_save_slot_locked(const char *nvs_key)
+
 {
     nvs_handle_t nvs_handle;
     esp_err_t err;
@@ -133,6 +150,7 @@ cleanup_err:
 }
 
 bool canvas_load_slot_locked(const char *nvs_key)
+
 {
     nvs_handle_t nvs_handle;
     if (nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs_handle) != ESP_OK)
@@ -196,6 +214,7 @@ void canvas_load_slot(uint8_t slot_num)
         return;
     }
     canvas_load_slot_locked(nvs_key);
+
     display_mux_unlock();
 }
 

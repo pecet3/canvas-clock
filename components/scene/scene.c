@@ -21,6 +21,16 @@ static lv_obj_t *canvas_obj;
 static lv_obj_t *clock_obj;
 static lv_obj_t *currency_obj;
 
+typedef enum
+{
+    SCENE_CLOCK,
+    SCENE_CANVAS_DRAW,
+    SCENE_CANVAS_SHOW,
+    SCENE_CANVAS_ALARM,
+    SCENE_CURRENCY,
+    SCENE_MAIN,
+} scene_t;
+
 const static scene_t default_main_scene = SCENE_CLOCK;
 static scene_t current_scene = default_main_scene;
 
@@ -134,16 +144,76 @@ static void main_scene_task(void *arg)
     }
 }
 
-void scene_set(scene_t scene)
+void scene_event(scene_event_t event, void *data)
 {
-    ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
-
     display_mux_lock();
+    switch (event)
+    {
+    case SCENE_SET_MAIN:
+        scene_set_locked(SCENE_MAIN);
+        break;
 
-    scene_set_locked(scene);
+    case SCENE_SET_CANVAS:
+        scene_set_locked(SCENE_CANVAS_SHOW);
+        break;
+
+    case SCENE_CANVAS_SAVE_SLOT:
+    {
+        if (data == NULL)
+            break;
+
+        uint8_t slot = *((uint8_t *)data);
+        const char *nvs_key = canvas_get_nvs_slot_key(slot);
+        if (nvs_key == NULL)
+        {
+            ESP_LOGE(TAG, "Invalid slot number: %d", slot);
+            break;
+        }
+        canvas_save_slot_locked(nvs_key);
+        break;
+    }
+    case SCENE_CANVAS_LOAD_SLOT:
+    {
+        if (data == NULL)
+            break;
+
+        uint8_t slot = *((uint8_t *)data);
+        const char *nvs_key = canvas_get_nvs_slot_key(slot);
+        if (nvs_key == NULL)
+        {
+            ESP_LOGE(TAG, "Invalid slot number: %d", slot);
+            break;
+        }
+        canvas_load_slot_locked(nvs_key);
+        break;
+    }
+    case SCENE_CANVAS_DELETE_SLOT:
+    {
+        if (data == NULL)
+            break;
+
+        uint8_t slot = *((uint8_t *)data);
+        const char *nvs_key = canvas_get_nvs_slot_key(slot);
+        if (nvs_key == NULL)
+        {
+            ESP_LOGE(TAG, "Invalid slot number: %d", slot);
+            break;
+        }
+        canvas_delete_slot_locked(nvs_key);
+        break;
+    }
+    case SCENE_CANVAS_DRAW_BUF:
+        if (data == NULL)
+            break;
+        char *buf = (char *)data;
+        canvas_draw_buf_locked(buf);
+        break;
+    default:
+        break;
+    }
+
     display_mux_unlock();
 }
-
 void scene_init()
 {
     canvas_obj = canvas_init();

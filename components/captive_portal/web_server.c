@@ -93,10 +93,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
     if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
-        if (active_ws_connections > 0)
-        {
-            scene_set(SCENE_CANVAS_DRAW);
-        }
+
         return ESP_OK;
     }
     httpd_ws_frame_t ws_pkt;
@@ -141,15 +138,15 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 int lenS = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
                 memcpy(tempS, &ws_pkt.payload[1], lenS);
                 tempS[lenS] = '\0';
-                uint8_t slot = (uint8_t)atoi(tempS);
-                if (slot < 31)
+                uint8_t slotS = (uint8_t)atoi(tempS);
+                if (slotS < 31)
                 {
-                    canvas_save_slot(slot);
-                    ESP_LOGI(TAG, "SAVING CANVAS TO SLOT: %u", slot);
+                    scene_event(SCENE_SET_CANVAS, &slotS);
+                    ESP_LOGI(TAG, "SAVING CANVAS TO SLOT: %u", slotS);
                 }
                 else
                 {
-                    ESP_LOGE(TAG, "Invalid slot number: %u", slot);
+                    ESP_LOGE(TAG, "Invalid slot number: %u", slotS);
                 }
                 break;
             case 'L':
@@ -160,7 +157,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 uint8_t slotL = (uint8_t)atoi(tempL);
                 if (slotL < 31)
                 {
-                    canvas_load_slot(slotL);
+                    scene_event(SCENE_SET_CANVAS, &slotL);
                     ESP_LOGI(TAG, "LOADING CANVAS FROM SLOT: %u", slotL);
                 }
                 else
@@ -176,7 +173,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 uint8_t slotD = (uint8_t)atoi(tempD);
                 if (slotD < 31)
                 {
-                    canvas_delete_slot(slotD);
+                    scene_event(SCENE_CANVAS_DELETE_SLOT, &slotD);
                     ESP_LOGI(TAG, "DELETING CANVAS SLOT: %u", slotD);
                 }
                 else
@@ -189,7 +186,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 break;
             default:
                 char *ptr = (char *)ws_pkt.payload;
-                canvas_draw_buf(ptr);
+                scene_event(SCENE_CANVAS_DRAW_BUF, ptr);
                 break;
             }
         }
@@ -240,7 +237,10 @@ esp_err_t on_open_socket(httpd_handle_t hd, int sockfd)
 {
     active_ws_connections++;
     ESP_LOGI(TAG, "New session opened. Active connections: %d", active_ws_connections);
-
+    if (active_ws_connections > 0)
+    {
+        scene_event(SCENE_SET_CANVAS, NULL);
+    }
     return ESP_OK;
 }
 
@@ -252,7 +252,7 @@ void on_close_socket(httpd_handle_t hd, int sockfd)
     }
     if (active_ws_connections <= 1)
     {
-        scene_set(SCENE_MAIN);
+        scene_event(SCENE_SET_MAIN, NULL);
     }
     ESP_LOGI(TAG, "Session closed. Active connections: %d", active_ws_connections);
 }

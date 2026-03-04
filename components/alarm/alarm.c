@@ -25,7 +25,7 @@ static void alarm_task(void *arg)
         time(&now);
         localtime_r(&now, &timeinfo);
 
-        if (timeinfo.tm_min % 10 == 0)
+        if (timeinfo.tm_min % 10 == 0 && timeinfo.tm_sec == 0)
         {
 
             buzzer_play_note_string("C D E");
@@ -54,7 +54,7 @@ static void alarm_task(void *arg)
 
             uint8_t prev = canvas_get_current_slot();
             canvas_set_current_slot(1);
-            scene_set(SCENE_CANVAS_SHOW);
+            scene_event(SCENE_SET_CANVAS, NULL);
 
             // Uproszczona melodia „Barka” – dostosuj do swojego buzzera
             buzzer_play_note_string("G A B C B A G  A B C D C B A  G A B C B A G");
@@ -62,7 +62,7 @@ static void alarm_task(void *arg)
             vTaskDelay(8000 / portTICK_PERIOD_MS);
 
             canvas_set_current_slot(prev);
-            scene_set(SCENE_MAIN);
+            scene_event(SCENE_SET_MAIN, NULL);
         }
     }
 }
