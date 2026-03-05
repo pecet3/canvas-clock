@@ -11,6 +11,7 @@
 #include "nvs_flash.h"
 #include "buzzer.h"
 #include "alarm.h"
+#include "spiffs.c"
 void app_main(void)
 {
     buzzer_init();
@@ -21,7 +22,7 @@ void app_main(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
-
+    spiffs_init();
     display_init();
     scene_init();
     wifi_init();
