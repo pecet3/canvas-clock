@@ -123,7 +123,6 @@ bool canvas_save_slot_locked(const char *nvs_key)
     {
         return false;
     }
-
     size_t buf_size = CANVAS_BUF_SIZE;
     char buf[buf_size];
     memcpy(buf, canvas_buffer, buf_size);

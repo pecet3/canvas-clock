@@ -146,6 +146,7 @@ static void main_scene_task(void *arg)
 
 void scene_event(scene_event_t event, void *data)
 {
+    ESP_LOGI(TAG, "event: %d", event);
     display_mux_lock();
     switch (event)
     {
@@ -154,7 +155,7 @@ void scene_event(scene_event_t event, void *data)
         break;
 
     case SCENE_SET_CANVAS:
-        scene_set_locked(SCENE_CANVAS_SHOW);
+        scene_set_locked(SCENE_CANVAS_DRAW);
         break;
 
     case SCENE_CANVAS_SAVE_SLOT:
@@ -169,7 +170,11 @@ void scene_event(scene_event_t event, void *data)
             ESP_LOGE(TAG, "Invalid slot number: %d", slot);
             break;
         }
-        canvas_save_slot_locked(nvs_key);
+        if (canvas_save_slot_locked(nvs_key))
+        {
+            ESP_LOGI(TAG, "saved ");
+        }
+
         break;
     }
     case SCENE_CANVAS_LOAD_SLOT:
@@ -203,11 +208,13 @@ void scene_event(scene_event_t event, void *data)
         break;
     }
     case SCENE_CANVAS_DRAW_BUF:
+    {
         if (data == NULL)
             break;
         char *buf = (char *)data;
         canvas_draw_buf_locked(buf);
         break;
+    }
     default:
         break;
     }

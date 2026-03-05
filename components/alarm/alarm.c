@@ -28,7 +28,8 @@ static void alarm_task(void *arg)
         if (timeinfo.tm_min % 10 == 0 && timeinfo.tm_sec == 0)
         {
 
-            buzzer_play_note_string("C D E");
+            buzzer_play_note_string("CEC");
+            continue;
         }
         // Co godzinę o xx:00:00 – Panie Janie
         if (timeinfo.tm_min == 0 &&

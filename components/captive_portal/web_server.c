@@ -93,7 +93,10 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
     if (req->method == HTTP_GET)
     {
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
-
+        if (active_ws_connections > 0)
+        {
+            scene_event(SCENE_SET_CANVAS, NULL);
+        }
         return ESP_OK;
     }
     httpd_ws_frame_t ws_pkt;
@@ -141,7 +144,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 uint8_t slotS = (uint8_t)atoi(tempS);
                 if (slotS < 31)
                 {
-                    scene_event(SCENE_SET_CANVAS, &slotS);
+                    scene_event(SCENE_CANVAS_SAVE_SLOT, &slotS);
                     ESP_LOGI(TAG, "SAVING CANVAS TO SLOT: %u", slotS);
                 }
                 else
@@ -157,7 +160,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
                 uint8_t slotL = (uint8_t)atoi(tempL);
                 if (slotL < 31)
                 {
-                    scene_event(SCENE_SET_CANVAS, &slotL);
+                    scene_event(SCENE_CANVAS_LOAD_SLOT, &slotL);
                     ESP_LOGI(TAG, "LOADING CANVAS FROM SLOT: %u", slotL);
                 }
                 else
@@ -237,10 +240,6 @@ esp_err_t on_open_socket(httpd_handle_t hd, int sockfd)
 {
     active_ws_connections++;
     ESP_LOGI(TAG, "New session opened. Active connections: %d", active_ws_connections);
-    if (active_ws_connections > 0)
-    {
-        scene_event(SCENE_SET_CANVAS, NULL);
-    }
     return ESP_OK;
 }
 
