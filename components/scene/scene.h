@@ -9,5 +9,5 @@ typedef enum
     SCENE_MAIN,
 } scene_t;
 
-void scene_set(scene_t scene);
+void scene_set(scene_t scene, void *data);
 void scene_init(void);

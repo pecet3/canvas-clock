@@ -134,7 +134,7 @@ static void main_scene_task(void *arg)
     }
 }
 
-void scene_set(scene_t scene)
+void scene_set(scene_t scene, void *data)
 {
     ESP_LOGI(TAG, "current scene: %d set to: %d", current_scene, scene);
 
