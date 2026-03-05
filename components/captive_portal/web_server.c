@@ -134,7 +134,7 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
             case 'R':
                 const char color_char = (char)ws_pkt.payload[1];
                 int color = atoi(&color_char);
-                canvas_fill_color((uint32_t)color);
+                scene_event(SCENE_CANVAS_FILL_COLOR, (void *)(color));
                 break;
             case 'S':
                 char tempS[3];

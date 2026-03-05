@@ -25,19 +25,6 @@ static void alarm_task(void *arg)
         time(&now);
         localtime_r(&now, &timeinfo);
 
-<<<<<<< HEAD
-        if (timeinfo.tm_min % 10 == 0 && timeinfo.tm_sec == 0)
-        {
-
-            buzzer_play_note_string("CEC");
-            continue;
-=======
-        if (timeinfo.tm_sec == 0 && timeinfo.tm_min % 10 == 0)
-        {
-
-            buzzer_play_note_string("CC E");
->>>>>>> config_and_arena
-        }
         // Co godzinę o xx:00:00 – Panie Janie
         if (timeinfo.tm_min == 0 &&
             timeinfo.tm_sec == 0 &&
@@ -48,6 +35,13 @@ static void alarm_task(void *arg)
             ESP_LOGI(TAG, "Hour signal at %02d:00:00", timeinfo.tm_hour);
 
             buzzer_play_note_string("C D E C  C D E C  E F G  E F G  G A G F E C  G A G F E C  C G C  C G C");
+            continue;
+        }
+
+        if (timeinfo.tm_min % 10 == 0 && timeinfo.tm_sec == 0)
+        {
+
+            buzzer_play_note_string("CEC");
         }
 
         // O 21:37 – Barka (raz dziennie)
@@ -60,25 +54,12 @@ static void alarm_task(void *arg)
 
             ESP_LOGI(TAG, "21:37 - Barka time");
 
-            uint8_t prev = canvas_get_current_slot();
-            canvas_set_current_slot(1);
-<<<<<<< HEAD
-            scene_event(SCENE_SET_CANVAS, NULL);
-=======
-            scene_set(SCENE_CANVAS_SHOW, NULL);
->>>>>>> config_and_arena
-
             // Uproszczona melodia „Barka” – dostosuj do swojego buzzera
             buzzer_play_note_string("G A B C B A G  A B C D C B A  G A B C B A G");
 
             vTaskDelay(8000 / portTICK_PERIOD_MS);
 
-            canvas_set_current_slot(prev);
-<<<<<<< HEAD
             scene_event(SCENE_SET_MAIN, NULL);
-=======
-            scene_set(SCENE_MAIN, NULL);
->>>>>>> config_and_arena
         }
     }
 }

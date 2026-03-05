@@ -151,12 +151,16 @@ void scene_event(scene_event_t event, void *data)
     switch (event)
     {
     case SCENE_SET_MAIN:
+    {
         scene_set_locked(SCENE_MAIN);
         break;
+    }
 
     case SCENE_SET_CANVAS:
+    {
         scene_set_locked(SCENE_CANVAS_DRAW);
         break;
+    }
 
     case SCENE_CANVAS_SAVE_SLOT:
     {
@@ -164,13 +168,13 @@ void scene_event(scene_event_t event, void *data)
             break;
 
         uint8_t slot = *((uint8_t *)data);
-        const char *nvs_key = canvas_get_nvs_slot_key(slot);
-        if (nvs_key == NULL)
+        char file_path[32];
+        if (!canvas_get_painting_path(slot, file_path, sizeof(file_path)))
         {
             ESP_LOGE(TAG, "Invalid slot number: %d", slot);
             break;
         }
-        if (canvas_save_slot_locked(nvs_key))
+        if (canvas_save_slot_locked(file_path))
         {
             ESP_LOGI(TAG, "saved ");
         }
@@ -183,13 +187,13 @@ void scene_event(scene_event_t event, void *data)
             break;
 
         uint8_t slot = *((uint8_t *)data);
-        const char *nvs_key = canvas_get_nvs_slot_key(slot);
-        if (nvs_key == NULL)
+        char file_path[32];
+        if (!canvas_get_painting_path(slot, file_path, sizeof(file_path)))
         {
             ESP_LOGE(TAG, "Invalid slot number: %d", slot);
             break;
         }
-        canvas_load_slot_locked(nvs_key);
+        canvas_load_slot_locked(file_path);
         break;
     }
     case SCENE_CANVAS_DELETE_SLOT:
@@ -198,13 +202,13 @@ void scene_event(scene_event_t event, void *data)
             break;
 
         uint8_t slot = *((uint8_t *)data);
-        const char *nvs_key = canvas_get_nvs_slot_key(slot);
-        if (nvs_key == NULL)
+        char file_path[32];
+        if (!canvas_get_painting_path(slot, file_path, sizeof(file_path)))
         {
             ESP_LOGE(TAG, "Invalid slot number: %d", slot);
             break;
         }
-        canvas_delete_slot_locked(nvs_key);
+        canvas_delete_slot_locked(file_path);
         break;
     }
     case SCENE_CANVAS_DRAW_BUF:
@@ -214,6 +218,11 @@ void scene_event(scene_event_t event, void *data)
         char *buf = (char *)data;
         canvas_draw_buf_locked(buf);
         break;
+    }
+    case SCENE_CANVAS_FILL_COLOR:
+    {
+        int color = (int)(data);
+        canvas_fill_color_locked(color);
     }
     default:
         break;

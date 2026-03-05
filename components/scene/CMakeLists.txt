@@ -11,6 +11,7 @@ idf_component_register(
         "."
     PRIV_REQUIRES 
         driver
+        spiffs
         esp_lcd
         lvgl
         display
