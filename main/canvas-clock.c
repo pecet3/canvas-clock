@@ -12,6 +12,7 @@
 #include "buzzer.h"
 #include "alarm.h"
 #include "spiffs.c"
+#include "keypad.h"
 void app_main(void)
 {
     buzzer_init();
@@ -29,4 +30,17 @@ void app_main(void)
     captive_portal_init();
     data_fetcher_init();
     alarm_init();
+    keypad_init();
+
+    while (1)
+    {
+        char key = keypad_scan();
+
+        if (key)
+        {
+            printf("Pressed: %c\n", key);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }
