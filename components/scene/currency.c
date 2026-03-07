@@ -28,7 +28,7 @@ void currency_update(fetch_data_t *data)
 
     display_mux_lock();
     snprintf(currency_text, sizeof(currency_text),
-             "1 USD = %.4f PLN\n1 EUR = %.4f PLN\n1 GBP = %.4f PLN\n1 CHF = %.4f PLN\n",
+             "1 USD = %.4f PLN\n1 EUR = %.4f PLN\n1 GBP = %.4f PLN\n1 CHF = %.4f PLN",
              data->usd_mid, data->eur_mid, data->gbp_mid, data->chf_mid);
 
     lv_label_set_text(currency_label, currency_text);

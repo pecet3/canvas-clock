@@ -52,13 +52,18 @@ static void create_clock_ui(void)
     lv_obj_set_style_text_font(date_label, font_terminus12(), 0);
 
     lv_obj_set_style_border_width(date_label, 1, 0);
-    lv_obj_set_style_border_color(date_label, lv_color_white(), 0);
+    lv_obj_set_style_border_color(date_label, lv_color_black(), 0);
 
-    lv_obj_set_style_radius(date_label, 4, 0);
+    lv_obj_set_style_radius(date_label, 8, 0);
 
     lv_obj_set_style_bg_opa(date_label, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(date_label, lv_color_black(), 0);
     lv_obj_set_style_text_color(date_label, lv_color_white(), 0);
+
+    lv_obj_set_style_pad_left(date_label, 3, 0);
+    lv_obj_set_style_pad_right(date_label, 3, 0);
+    lv_obj_set_style_pad_top(date_label, 1, 0);
+    lv_obj_set_style_pad_bottom(date_label, 1, 0);
 
     lv_obj_align(date_label, LV_ALIGN_BOTTOM_MID, 0, -4);
 

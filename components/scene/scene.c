@@ -223,6 +223,7 @@ void scene_event(scene_event_t event, void *data)
     {
         int color = (int)(data);
         canvas_fill_color_locked(color);
+        break;
     }
     default:
         break;
