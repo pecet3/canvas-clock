@@ -3,7 +3,7 @@
 #include "esp_log.h"
 #include <time.h>
 #include <stdio.h>
-#include "font.h"
+#include "font/font.h"
 static const char *TAG = "Clock";
 static lv_obj_t *clock_screen;
 static lv_obj_t *clock_label;
@@ -45,11 +45,20 @@ static void create_clock_ui(void)
     lv_obj_set_style_border_width(clock_screen, 1, 0);
 
     clock_label = lv_label_create(clock_screen);
-    lv_obj_set_style_text_font(clock_label, get_font_workbench_30num(), 0);
+    lv_obj_set_style_text_font(clock_label, font_workbench30num(), 0);
     lv_obj_align(clock_label, LV_ALIGN_CENTER, 0, -12);
 
     date_label = lv_label_create(clock_screen);
-    lv_obj_set_style_text_font(date_label, get_font_terminus12(), 0);
+    lv_obj_set_style_text_font(date_label, font_terminus12(), 0);
+
+    lv_obj_set_style_border_width(date_label, 1, 0);
+    lv_obj_set_style_border_color(date_label, lv_color_white(), 0);
+
+    lv_obj_set_style_radius(date_label, 4, 0);
+
+    lv_obj_set_style_bg_opa(date_label, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(date_label, lv_color_black(), 0);
+    lv_obj_set_style_text_color(date_label, lv_color_white(), 0);
 
     lv_obj_align(date_label, LV_ALIGN_BOTTOM_MID, 0, -4);
 

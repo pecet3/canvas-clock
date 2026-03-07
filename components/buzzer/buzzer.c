@@ -4,7 +4,7 @@
 #include "driver/ledc.h"
 #include <string.h>
 
-#define BUZZER_PIN 4
+#define BUZZER_PIN 21
 
 #define NOTE_C4 262
 #define NOTE_CS4 277

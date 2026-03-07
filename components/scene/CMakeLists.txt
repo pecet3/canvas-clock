@@ -4,9 +4,10 @@ idf_component_register(
         "canvas.c"
         "scene.c"
         "currency.c"
-        "font_workbench_30num.c"
-        "font_terminus_12.c"
-        "font.c"
+        "font/font_workbench_30num.c"
+        "font/font_terminus_12.c"
+        "font/font_micro_30num.c"
+        "font/font.c"
     INCLUDE_DIRS 
         "."
     PRIV_REQUIRES 

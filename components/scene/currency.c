@@ -3,7 +3,7 @@
 #include "esp_log.h"
 #include "data_fetcher.h"
 #include <stdio.h>
-#include "font.h"
+#include "font/font.h"
 static const char *TAG = "currency";
 
 static lv_obj_t *currency_screen;
@@ -18,7 +18,7 @@ static void create_currency_objects_locked(void)
     currency_label = lv_label_create(currency_screen);
     lv_obj_align(currency_label, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_text(currency_label, "loading\n");
-    lv_obj_set_style_text_font(currency_label, get_font_terminus12(), 0);
+    lv_obj_set_style_text_font(currency_label, font_terminus12(), 0);
 }
 
 void currency_update(fetch_data_t *data)
