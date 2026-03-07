@@ -34,14 +34,8 @@ static void alarm_task(void *arg)
 
             ESP_LOGI(TAG, "Hour signal at %02d:00:00", timeinfo.tm_hour);
 
-            buzzer_play_note_string("C D E C  C D E C  E F G  E F G  G A G F E C  G A G F E C  C G C  C G C");
+            buzzer_play_note_string("C");
             continue;
-        }
-
-        if (timeinfo.tm_min % 10 == 0 && timeinfo.tm_sec == 0)
-        {
-
-            buzzer_play_note_string("CEC");
         }
 
         // O 21:37 – Barka (raz dziennie)

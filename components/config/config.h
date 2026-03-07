@@ -7,23 +7,21 @@ typedef struct
 {
     int minute;
     int hour;
-    int canvas_slot;
     int delay_after_notes_ms;
-    char *buzzer_notes;
+    uint8_t canvas_slot;
+    uint8_t buzzer_slot;
 } config_alarm_t;
 
 typedef struct
 {
     bool is_enabled;
     int interval_minutes;
-    char *buzzer_interval_notes;
+    uint8_t buzzer_slot;
 } config_alarm_interval_t;
 
 typedef struct
 {
-    config_alarm_t *alarms_array;
-    size_t alarms_array_size;
+    config_alarm_t alarms[32];
     config_alarm_interval_t alarm_interval;
-    int *slots_order_array;
-    int slots_order_size;
+    uint8_t canvas_slot_order[32];
 } config_t;

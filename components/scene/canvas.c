@@ -98,7 +98,7 @@ void canvas_fill_color_locked(uint32_t color)
 
 bool canvas_get_painting_path(uint8_t num, char *buf, size_t buf_size)
 {
-    if (num >= MAX_SLOTS || buf == NULL)
+    if (buf == NULL)
         return false;
 
     snprintf(buf, buf_size, "/spiffs/c_slot%d.bin", num);
@@ -115,11 +115,12 @@ bool canvas_save_slot_locked(const char *file_path)
     if (n != CANVAS_BUF_SIZE)
     {
         fclose(file);
-        ESP_LOGE(TAG, "Failed to save file\n");
+        ESP_LOGE(TAG, "Failed to save file");
         return false;
     }
-    return true;
+    fflush(file);
     fclose(file);
+    return true;
 }
 
 bool canvas_load_slot_locked(const char *file_path)
@@ -129,12 +130,12 @@ bool canvas_load_slot_locked(const char *file_path)
 
     if (file == NULL)
     {
-        ESP_LOGE(TAG, "No saved canvas found\n");
+        ESP_LOGE(TAG, "No saved canvas found");
         return false;
     }
     fread(canvas_buffer, 1, CANVAS_BUF_SIZE, file);
     fclose(file);
-    ESP_LOGI(TAG, "Canvas loaded from SPIFFS\n");
+    ESP_LOGI(TAG, "Canvas loaded from SPIFFS");
     return true;
 }
 
@@ -143,7 +144,7 @@ bool canvas_delete_slot_locked(const char *file_path)
     if (remove(file_path) != 0)
     {
 
-        ESP_LOGE(TAG, "Failed to delete canvas file\n");
+        ESP_LOGE(TAG, "Failed to delete canvas file");
         return false;
     }
     return true;
@@ -154,8 +155,6 @@ void canvas_set_drawing_locked()
     canvas_fill_color_locked(1);
     ESP_LOGI(TAG, "is drawing");
 }
-
-static uint8_t current_slot = 0;
 
 bool canvas_set_showing_locked()
 {
@@ -179,7 +178,7 @@ bool canvas_set_showing_locked()
     {
         ESP_LOGI(TAG, "No more slots to show, resetting to slot 0 and stopping recursion");
         current_slot = 0;
-        return canvas_set_showing_locked();
+        return false;
     }
 
     current_slot++;
