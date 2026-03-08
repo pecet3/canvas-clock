@@ -38,7 +38,7 @@ typedef enum
     STORAGE_ART_MELODY,
 } storage_art_kind_t;
 
-bool storage_art_set(storage_art_kind_t kind, const storage_art_t *new_item);
+bool storage_art_set(storage_art_kind_t kind, const char *name);
 bool storage_art_delete(storage_art_kind_t kind, const char *name);
 
 void storage_mux_lock();
