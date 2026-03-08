@@ -8,7 +8,7 @@
 #include "esp_log.h"
 #include "data_fetcher.h"
 #include "currency.h"
-
+#include "storage.h"
 extern bool canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
 extern void canvas_fill_color_locked(uint32_t color);
@@ -56,7 +56,9 @@ static void scene_set_locked(scene_t scene)
         lv_obj_clear_flag(canvas_obj, LV_OBJ_FLAG_HIDDEN);
         if (!canvas_set_showing_locked())
         {
-            scene = SCENE_CLOCK;
+            scene_set_locked(SCENE_MAIN);
+            is_autocycle = true;
+            break;
         }
         is_autocycle = false;
         break;
@@ -167,18 +169,16 @@ void scene_event(scene_event_t event, void *data)
         if (data == NULL)
             break;
 
-        uint8_t slot = *((uint8_t *)data);
-        char file_path[32];
-        if (!canvas_get_painting_path(slot, file_path, sizeof(file_path)))
-        {
-            ESP_LOGE(TAG, "Invalid slot number: %d", slot);
-            break;
-        }
-        if (canvas_save_slot_locked(file_path))
+        const char *name = (const char *)data;
+        if (canvas_save_slot_locked(name))
         {
             ESP_LOGI(TAG, "saved ");
         }
-
+        bool ok = storage_art_set(STORAGE_ART_PAINTING, name);
+        if (ok)
+        {
+            ESP_LOGI(TAG, "saved ");
+        }
         break;
     }
     case SCENE_CANVAS_LOAD_SLOT:
@@ -186,14 +186,8 @@ void scene_event(scene_event_t event, void *data)
         if (data == NULL)
             break;
 
-        uint8_t slot = *((uint8_t *)data);
-        char file_path[32];
-        if (!canvas_get_painting_path(slot, file_path, sizeof(file_path)))
-        {
-            ESP_LOGE(TAG, "Invalid slot number: %d", slot);
-            break;
-        }
-        canvas_load_slot_locked(file_path);
+        const char *name = (const char *)data;
+        canvas_load_slot_locked(name);
         break;
     }
     case SCENE_CANVAS_DELETE_SLOT:
@@ -201,14 +195,13 @@ void scene_event(scene_event_t event, void *data)
         if (data == NULL)
             break;
 
-        uint8_t slot = *((uint8_t *)data);
-        char file_path[32];
-        if (!canvas_get_painting_path(slot, file_path, sizeof(file_path)))
+        const char *name = (const char *)data;
+        canvas_delete_slot_locked(name);
+        bool ok = storage_art_delete(STORAGE_ART_PAINTING, name);
+        if (ok)
         {
-            ESP_LOGE(TAG, "Invalid slot number: %d", slot);
-            break;
+            ESP_LOGI(TAG, "deleted ");
         }
-        canvas_delete_slot_locked(file_path);
         break;
     }
     case SCENE_CANVAS_DRAW_BUF:

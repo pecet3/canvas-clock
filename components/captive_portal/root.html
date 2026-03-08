@@ -220,37 +220,12 @@
       </div>
       <button id="reset-btn">FILL COLOR</button>
       <div style="flex: 0">
-        <input
-          id="save-input"
-          type="number"
-          id="save-number"
-          min="0"
-          max="31"
-          value="0"
-        />
-        <button id="save-btn">SAVE</button>
-      </div>
-      <div style="flex: 0">
-        <input
-          id="load-input"
-          type="number"
-          id="load-number"
-          min="0"
-          max="31"
-          value="0"
-        />
-        <button id="load-btn">LOAD</button>
-      </div>
-      <div style="flex: 0">
-        <input
-          id="delete-input"
-          type="number"
-          id="delete-number"
-          min="0"
-          max="31"
-          value="0"
-        />
-        <button id="delete-btn">DELETE</button>
+        <input id="painting-name-input" type="text" maxlength="15" value="" />
+        <div style="flex: 0; flex-direction: row">
+          <button id="save-btn">SAVE</button>
+          <button id="load-btn">LOAD</button>
+          <button id="delete-btn">DELETE</button>
+        </div>
       </div>
     </div>
     <div class="piano" id="piano">
@@ -272,12 +247,11 @@
       const ctx = canvas.getContext("2d");
       const statusDiv = document.getElementById("status");
       const resetBtn = document.getElementById("reset-btn");
+
+      const paintingNameInput = document.getElementById("painting-name-input");
       const saveBtn = document.getElementById("save-btn");
-      const saveInput = document.getElementById("save-input");
       const loadBtn = document.getElementById("load-btn");
-      const loadInput = document.getElementById("load-input");
       const deleteBtn = document.getElementById("delete-btn");
-      const deleteInput = document.getElementById("delete-input");
 
       let currentColor = 0;
       let brushSize = 1;
@@ -428,15 +402,15 @@
       });
 
       saveBtn.addEventListener("click", (e) => {
-        ws.send(`S${saveInput.value}`);
+        ws.send(`S${paintingNameInput.value}`);
       });
 
       loadBtn.addEventListener("click", (e) => {
-        ws.send(`L${loadInput.value}`);
+        ws.send(`L${paintingNameInput.value}`);
       });
 
       deleteBtn.addEventListener("click", (e) => {
-        ws.send(`D${deleteInput.value}`);
+        ws.send(`D${paintingNameInput.value}`);
       });
 
       const piano = document.getElementById("piano");

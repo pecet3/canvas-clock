@@ -19,4 +19,5 @@ idf_component_register(
         nvs_flash
         data
         alarm
+        storage
 )

@@ -132,58 +132,33 @@ static esp_err_t canvas_ws_handler(httpd_req_t *req)
             switch (command)
             {
             case 'R':
+            {
                 const char color_char = (char)ws_pkt.payload[1];
                 int color = atoi(&color_char);
                 scene_event(SCENE_CANVAS_FILL_COLOR, (void *)(color));
                 break;
+            }
             case 'S':
-                char tempS[3];
-                int lenS = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
-                memcpy(tempS, &ws_pkt.payload[1], lenS);
-                tempS[lenS] = '\0';
-                uint8_t slotS = (uint8_t)atoi(tempS);
-                if (slotS < 31)
-                {
-                    scene_event(SCENE_CANVAS_SAVE_SLOT, &slotS);
-                    ESP_LOGI(TAG, "SAVING CANVAS TO SLOT: %u", slotS);
-                }
-                else
-                {
-                    ESP_LOGE(TAG, "Invalid slot number: %u", slotS);
-                }
+            {
+                char name[16];
+                memcpy(name, &ws_pkt.payload[1], ws_pkt.len - 1);
+                scene_event(SCENE_CANVAS_SAVE_SLOT, name);
                 break;
+            }
             case 'L':
-                char tempL[3];
-                int lenL = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
-                memcpy(tempL, &ws_pkt.payload[1], lenL);
-                tempL[lenL] = '\0';
-                uint8_t slotL = (uint8_t)atoi(tempL);
-                if (slotL < 31)
-                {
-                    scene_event(SCENE_CANVAS_LOAD_SLOT, &slotL);
-                    ESP_LOGI(TAG, "LOADING CANVAS FROM SLOT: %u", slotL);
-                }
-                else
-                {
-                    ESP_LOGE(TAG, "Invalid slot number: %u", slotL);
-                }
+            {
+                char name[16];
+                memcpy(name, &ws_pkt.payload[1], ws_pkt.len - 1);
+                scene_event(SCENE_CANVAS_LOAD_SLOT, name);
                 break;
+            }
             case 'D':
-                char tempD[3];
-                int lenD = (ws_pkt.len - 1 > 2) ? 2 : (ws_pkt.len - 1);
-                memcpy(tempD, &ws_pkt.payload[1], lenD);
-                tempD[lenD] = '\0';
-                uint8_t slotD = (uint8_t)atoi(tempD);
-                if (slotD < 31)
-                {
-                    scene_event(SCENE_CANVAS_DELETE_SLOT, &slotD);
-                    ESP_LOGI(TAG, "DELETING CANVAS SLOT: %u", slotD);
-                }
-                else
-                {
-                    ESP_LOGE(TAG, "Invalid slot number: %u", slotD);
-                }
+            {
+                char name[16];
+                memcpy(name, &ws_pkt.payload[1], ws_pkt.len - 1);
+                scene_event(SCENE_CANVAS_DELETE_SLOT, name);
                 break;
+            }
             case 'M':
                 buzzer_play_note_char((char)ws_pkt.payload[1]);
                 break;

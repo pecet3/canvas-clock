@@ -3,17 +3,11 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "canvas.h"
-#include "nvs_flash.h"
-
-#include <stdatomic.h>
 #include <stdint.h>
-
+#include "storage.h"
 #define CANVAS_WIDTH 128
 #define CANVAS_HEIGHT 64
 #define CANVAS_BUF_SIZE (CANVAS_WIDTH * CANVAS_HEIGHT / 8) + 8
-
-// counts from 0
-#define MAX_SLOTS 32 - 1
 
 static uint8_t canvas_buffer[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
 static lv_obj_t *canvas = NULL;
@@ -96,16 +90,20 @@ void canvas_fill_color_locked(uint32_t color)
 
 */
 
-bool canvas_get_painting_path(uint8_t num, char *buf, size_t buf_size)
+bool get_path(const char *name, char *buf, size_t buf_size)
 {
     if (buf == NULL)
         return false;
 
-    snprintf(buf, buf_size, "/spiffs/c_slot%d.bin", num);
+    snprintf(buf, buf_size, "/spiffs/c/%s.bin", name);
+    ESP_LOGI(TAG, "%s", buf);
     return true;
 }
-bool canvas_save_slot_locked(const char *file_path)
+
+bool canvas_save_slot_locked(const char *name)
 {
+    char file_path[64];
+    get_path(name, file_path, sizeof(file_path));
     FILE *file = fopen(file_path, "wb");
     if (file == NULL)
     {
@@ -123,9 +121,11 @@ bool canvas_save_slot_locked(const char *file_path)
     return true;
 }
 
-bool canvas_load_slot_locked(const char *file_path)
+bool canvas_load_slot_locked(const char *name)
 
 {
+    char file_path[64];
+    get_path(name, file_path, sizeof(file_path));
     FILE *file = fopen(file_path, "rb");
 
     if (file == NULL)
@@ -139,8 +139,10 @@ bool canvas_load_slot_locked(const char *file_path)
     return true;
 }
 
-bool canvas_delete_slot_locked(const char *file_path)
+bool canvas_delete_slot_locked(const char *name)
 {
+    char file_path[64];
+    get_path(name, file_path, sizeof(file_path));
     if (remove(file_path) != 0)
     {
 
@@ -158,32 +160,40 @@ void canvas_set_drawing_locked()
 
 bool canvas_set_showing_locked()
 {
-    static uint8_t current_slot = 0;
+    static int last_found_at_index = 0;
 
-    char file_path[32];
-    if (!canvas_get_painting_path(current_slot, file_path, sizeof(file_path)))
+    storage_t *storage = storage_ptr();
+    bool is_overlooped = false;
+    bool found = false;
+
+    storage_mux_lock();
+    for (int i = last_found_at_index; i < 64; i++)
     {
-        ESP_LOGE(TAG, "Invalid slot number: %d", current_slot);
-        return false;
-    }
-    if (canvas_load_slot_locked(file_path))
-    {
-        current_slot++;
-        return true;
-    }
+        ESP_LOGI(TAG, "%s", storage->paintings[i].name);
+        if (i == 63)
+        {
+            if (is_overlooped)
+            {
+                storage_mux_unlock();
+                return false;
+            }
+            i = 0;
+            is_overlooped = true;
+        }
+        if (storage->paintings[i].is_enabled)
+        {
+            ESP_LOGI(TAG, "this is: %d", storage->paintings[i].is_enabled);
 
-    ESP_LOGE(TAG, "Failed to load canvas slot %d", current_slot);
-
-    if (current_slot == MAX_SLOTS)
-    {
-        ESP_LOGI(TAG, "No more slots to show, resetting to slot 0 and stopping recursion");
-        current_slot = 0;
-        return false;
+            ESP_LOGI(TAG, "found at index: %d", last_found_at_index);
+            last_found_at_index = i + 1;
+            canvas_load_slot_locked(storage->paintings[i].name);
+            found = true;
+            break;
+        }
     }
-
-    current_slot++;
-    canvas_set_showing_locked();
-    return true;
+    ESP_LOGI(TAG, "found: %d", found);
+    storage_mux_unlock();
+    return found;
 }
 
 lv_obj_t *canvas_init(void)
