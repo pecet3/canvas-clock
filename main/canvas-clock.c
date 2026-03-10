@@ -16,6 +16,8 @@
 void app_main(void)
 {
     buzzer_init();
+    keypad_init();
+
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
@@ -30,7 +32,6 @@ void app_main(void)
     captive_portal_init();
     data_fetcher_init();
     alarm_init();
-    keypad_init();
 
     scene_event(SCENE_SET_CHIP8, NULL);
 
