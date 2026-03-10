@@ -25,14 +25,14 @@ typedef struct chip8
     uint16_t sp;
     uint16_t stack[16];
 
-    uint8_t curr_op;
+    uint16_t curr_op;
 
     uint8_t delay_tim;
     uint8_t sound_tim;
 
-    uint8_t keys[NUM_KEYS];
+    uint8_t keypad[NUM_KEYS];
 
-    uint8_t screen[64 * 32];
+    bool screen[64 * 32];
     uint8_t ram[TOTAL_RAM];
 } chip8_t;
 
@@ -54,3 +54,11 @@ const static uint8_t FONTSET[FONTSET_SIZE] = {
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
+
+chip8_t *new (void);
+
+void delete (chip8_t *self);
+
+void fetch_op(chip8_t *self);
+
+void exec_op(chip8_t *self);
