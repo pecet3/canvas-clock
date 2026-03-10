@@ -22,9 +22,26 @@ chip8_t *new(void)
     return self;
 }
 
+void load_rom(chip8_t *self, const char *buf, int size)
+{
+    memcpy(&self->ram[PROGRAM_START_ADDR], buf, size);
+}
+
 void delete(chip8_t *self)
 {
     free(self);
+}
+
+void update_timers(chip8_t *self)
+{
+    if (self->delay_tim > 0)
+    {
+        self->delay_tim--;
+    }
+    if (self->sound_tim > 0)
+    {
+        self->sound_tim--;
+    }
 }
 
 void fetch_op(chip8_t *self)
@@ -38,7 +55,7 @@ void exec_op(chip8_t *self)
     ESP_LOGI(TAG, "opcode: 0x%04X", self->curr_op);
     switch (self->curr_op & 0xF000)
     {
-    case 0x0:
+    case 0x0000:
         switch (self->curr_op & 0x00FF)
         {
         case 0x00E0:
@@ -53,15 +70,15 @@ void exec_op(chip8_t *self)
             break;
         }
         break;
-    case 0x1:
+    case 0x1000:
         self->pc = NNN(self->curr_op);
         break;
-    case 0x2:
+    case 0x2000:
         self->stack[self->sp] = self->pc;
         self->sp += 1;
         self->pc = NNN(self->curr_op);
         break;
-    case 0x3:
+    case 0x3000:
     {
         if (self->v_reg[X(self->curr_op)] == KK(self->curr_op))
         {
@@ -69,7 +86,7 @@ void exec_op(chip8_t *self)
         }
         break;
     }
-    case 0x4:
+    case 0x4000:
     {
         if (self->v_reg[X(self->curr_op)] != KK(self->curr_op))
         {
@@ -77,7 +94,7 @@ void exec_op(chip8_t *self)
         }
         break;
     }
-    case 0x5:
+    case 0x5000:
     {
         if (self->v_reg[X(self->curr_op)] == self->v_reg[Y(self->curr_op)])
         {
@@ -85,20 +102,20 @@ void exec_op(chip8_t *self)
         }
         break;
     }
-    case 0x6:
+    case 0x6000:
     {
         self->v_reg[X(self->curr_op)] = KK(self->curr_op);
         break;
     }
-    case 0x7:
+    case 0x7000:
     {
         self->v_reg[X(self->curr_op)] += KK(self->curr_op);
         break;
     }
-    case 0x8:
+    case 0x8000:
         switch (self->curr_op & 0x000F)
         {
-        case 0x0:
+        case 0x0000:
         {
             self->v_reg[X(self->curr_op)] = self->v_reg[Y(self->curr_op)];
             break;
@@ -151,7 +168,7 @@ void exec_op(chip8_t *self)
         break;
         }
         break;
-    case 0x9:
+    case 0x9000:
     {
         if (self->v_reg[X(self->curr_op)] != self->v_reg[Y(self->curr_op)])
         {
@@ -159,23 +176,23 @@ void exec_op(chip8_t *self)
         }
         break;
     }
-    case 0xA:
+    case 0xA000:
     {
         self->i_reg = NNN(self->curr_op);
         break;
     }
-    case 0xB:
+    case 0xB000:
     {
         self->pc = NNN(self->curr_op) + self->v_reg[0];
         break;
     }
-    case 0xC:
+    case 0xC000:
     {
         uint8_t random_byte = (uint8_t)(esp_random() % 256);
         self->v_reg[X(self->curr_op)] = random_byte & KK(self->curr_op);
         break;
     }
-    case 0xD:
+    case 0xD000:
     {
         uint8_t x_coord = self->v_reg[X(self->curr_op)];
         uint8_t y_coord = self->v_reg[Y(self->curr_op)];
@@ -208,16 +225,16 @@ void exec_op(chip8_t *self)
         self->v_reg[0xF] = flipped ? 1 : 0;
         break;
     }
-    case 0xE:
+    case 0xE000:
         switch (KK(self->curr_op))
         {
-        case 0x9E:
+        case 0x9E00:
             if (self->keypad[self->v_reg[X(self->curr_op)]])
             {
                 self->pc += 2;
             }
             break;
-        case 0xA1:
+        case 0xA100:
             if (!self->keypad[self->v_reg[X(self->curr_op)]])
             {
                 self->pc += 2;
@@ -226,13 +243,13 @@ void exec_op(chip8_t *self)
         }
         break;
 
-    case 0xF:
+    case 0xF000:
         switch (KK(self->curr_op))
         {
-        case 0x07:
+        case 0x0700:
             self->v_reg[X(self->curr_op)] = self->delay_tim;
             break;
-        case 0x0A:
+        case 0x0A00:
         {
             bool key_pressed = false;
             for (int i = 0; i < 16; i++)
@@ -250,19 +267,19 @@ void exec_op(chip8_t *self)
             }
             break;
         }
-        case 0x15:
+        case 0x1500:
             self->delay_tim = self->v_reg[X(self->curr_op)];
             break;
-        case 0x18:
+        case 0x1800:
             self->sound_tim = self->v_reg[X(self->curr_op)];
             break;
-        case 0x1E:
+        case 0x1E00:
             self->i_reg += self->v_reg[X(self->curr_op)];
             break;
-        case 0x29:
+        case 0x2900:
             self->i_reg = CHIP8_RAM_START_ADDR + (self->v_reg[X(self->curr_op)] * 5);
             break;
-        case 0x33:
+        case 0x3300:
         {
             uint8_t val = self->v_reg[X(self->curr_op)];
             self->ram[self->i_reg] = val / 100;
@@ -270,13 +287,13 @@ void exec_op(chip8_t *self)
             self->ram[self->i_reg + 2] = val % 10;
             break;
         }
-        case 0x55:
+        case 0x5500:
             for (int i = 0; i <= X(self->curr_op); i++)
             {
                 self->ram[self->i_reg + i] = self->v_reg[i];
             }
             break;
-        case 0x65:
+        case 0x6500:
             for (int i = 0; i <= X(self->curr_op); i++)
             {
                 self->v_reg[i] = self->ram[self->i_reg + i];

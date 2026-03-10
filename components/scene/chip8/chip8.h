@@ -1,6 +1,5 @@
 #pragma once
 #include <stdint.h>
-
 #define NUM_KEYS 16
 #define NUM_V_REGISTERS 16
 #define TOTAL_RAM 4096
@@ -62,3 +61,7 @@ void delete (chip8_t *self);
 void fetch_op(chip8_t *self);
 
 void exec_op(chip8_t *self);
+
+void update_timers(chip8_t *self);
+void load_rom(chip8_t *self, const char *buf, int size);
+void chip8_init();

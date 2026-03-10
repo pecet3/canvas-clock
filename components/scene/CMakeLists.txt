@@ -5,6 +5,7 @@ idf_component_register(
         "scene.c"
         "currency.c"
         "chip8/chip8.c"
+        "chip8/scene.c"
         "font/font_workbench_30num.c"
         "font/font_terminus_12.c"
         "font/font_micro_30num.c"
