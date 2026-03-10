@@ -9,7 +9,7 @@
 #include "data_fetcher.h"
 #include "currency.h"
 #include "storage.h"
-#include "chip8/chip8.h"
+#include "chip8.h"
 extern bool canvas_load_slot_locked(const char *nvs_key);
 extern const char *canvas_get_nvs_key(int num);
 extern void canvas_fill_color_locked(uint32_t color);
@@ -156,12 +156,21 @@ void scene_event(scene_event_t event, void *data)
     case SCENE_SET_MAIN:
     {
         scene_set_locked(SCENE_MAIN);
+        chip8_stop();
         break;
     }
 
     case SCENE_SET_CANVAS:
     {
         scene_set_locked(SCENE_CANVAS_DRAW);
+        is_autocycle = false;
+        break;
+    }
+
+    case SCENE_SET_CHIP8:
+    {
+        scene_set_locked(SCENE_CANVAS_DRAW);
+        chip8_run();
         break;
     }
 
@@ -228,10 +237,9 @@ void scene_event(scene_event_t event, void *data)
 void scene_init()
 {
     canvas_obj = canvas_init();
-    chip8_init();
-    // currency_obj = currency_init();
-    // clock_obj = clock_init();
-    // xTaskCreate(main_scene_task, "MainScene", 16384, NULL, 5, NULL);
+    currency_obj = currency_init();
+    clock_obj = clock_init();
+    xTaskCreate(main_scene_task, "MainScene", 8192, NULL, 5, NULL);
 
     ESP_LOGI(TAG, "initalized");
 }

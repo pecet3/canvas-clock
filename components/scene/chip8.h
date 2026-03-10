@@ -31,7 +31,9 @@ typedef struct chip8
 
     uint8_t keypad[NUM_KEYS];
 
-    bool screen[64 * 32];
+    bool is_drawing;
+
+    bool screen[SCREEN_HEIGHT * SCREEN_WIDTH];
     uint8_t ram[TOTAL_RAM];
 } chip8_t;
 
@@ -54,14 +56,5 @@ const static uint8_t FONTSET[FONTSET_SIZE] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-chip8_t *new (void);
-
-void delete (chip8_t *self);
-
-void fetch_op(chip8_t *self);
-
-void exec_op(chip8_t *self);
-
-void update_timers(chip8_t *self);
-void load_rom(chip8_t *self, const char *buf, int size);
-void chip8_init();
+void chip8_run(void);
+void chip8_stop(void);

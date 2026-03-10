@@ -8,7 +8,6 @@
 #define CANVAS_WIDTH 128
 #define CANVAS_HEIGHT 64
 #define CANVAS_BUF_SIZE (CANVAS_WIDTH * CANVAS_HEIGHT / 8) + 8
-
 static uint8_t canvas_buffer[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
 static lv_obj_t *canvas = NULL;
 static const char *TAG = "Canvas";
@@ -18,6 +17,9 @@ static const char *TAG = "Canvas";
     Canvas drawing
 
 */
+
+// lv_obj_invalidate();
+
 void canvas_draw_pixel(int32_t x, int32_t y, bool color_index)
 {
     display_mux_lock();
@@ -27,6 +29,11 @@ void canvas_draw_pixel(int32_t x, int32_t y, bool color_index)
     }
     display_mux_unlock();
 }
+void canvas_draw_pixel_locked(int32_t x, int32_t y, bool color_index)
+{
+    lv_canvas_set_px(canvas, x, y, lv_color_hex(color_index), LV_OPA_COVER);
+}
+
 void canvas_draw_pixels(canvas_pixel_t *pixels, size_t count)
 {
     if (pixels == NULL || count == 0)
@@ -45,6 +52,7 @@ void canvas_draw_pixels(canvas_pixel_t *pixels, size_t count)
     }
     display_mux_unlock();
 }
+
 void canvas_draw_buf(char *ptr)
 {
     if (ptr == NULL)

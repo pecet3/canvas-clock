@@ -3,6 +3,10 @@
 #include "lvgl.h"
 #pragma once
 
+#define CANVAS_WIDTH 128
+#define CANVAS_HEIGHT 64
+#define CANVAS_BUF_SIZE (CANVAS_WIDTH * CANVAS_HEIGHT / 8) + 8
+
 typedef struct canvas_pixel
 {
     int x;
@@ -12,6 +16,7 @@ typedef struct canvas_pixel
 
 lv_obj_t *canvas_init(void);
 void canvas_draw_pixel(int32_t x, int32_t y, bool color_index);
+void canvas_draw_pixel_locked(int32_t x, int32_t y, bool color_index);
 void canvas_draw_pixels(canvas_pixel_t *pixels, size_t count);
 // colors: 0 or 1);
 void canvas_draw_buf_locked(char *ptr);

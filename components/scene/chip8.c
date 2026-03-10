@@ -5,6 +5,10 @@
 #include "chip8.h"
 #include <string.h>
 #include "esp_random.h"
+#include "canvas.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "keypad.h"
 
 #define X(op) ((op & 0x0F00) >> 8)
 #define Y(op) ((op & 0x00F0) >> 4)
@@ -50,9 +54,14 @@ void fetch_op(chip8_t *self)
     self->pc += 2;
 }
 
+void keypress(chip8_t *self, int idx, bool is_pressed)
+{
+    self->keypad[idx] = 1;
+}
+
 void exec_op(chip8_t *self)
 {
-    ESP_LOGI(TAG, "opcode: 0x%04X", self->curr_op);
+    // ESP_LOGI(TAG, "opcode: 0x%04X", self->curr_op);
     switch (self->curr_op & 0xF000)
     {
     case 0x0000:
@@ -223,6 +232,7 @@ void exec_op(chip8_t *self)
         }
 
         self->v_reg[0xF] = flipped ? 1 : 0;
+        self->is_drawing = true;
         break;
     }
     case 0xE000:
@@ -305,4 +315,79 @@ void exec_op(chip8_t *self)
         ESP_LOGE(TAG, "Unimplemented opcode: 0x%04X", self->curr_op);
         break;
     }
+}
+const char MAZE[] = {
+    0xa2, 0x1e, 0xc2, 0x01, 0x32, 0x01, 0xa2, 0x1a, 0xd0, 0x14, 0x70, 0x04,
+    0x30, 0x40, 0x12, 0x00, 0x60, 0x00, 0x71, 0x04, 0x31, 0x20, 0x12, 0x00,
+    0x12, 0x18, 0x80, 0x40, 0x20, 0x10, 0x20, 0x40, 0x80, 0x10};
+unsigned int MAZE_len = 34;
+
+static volatile bool is_stop;
+static void chip8_task(void *arg)
+{
+
+    chip8_t *chip8 = new();
+    load_rom(chip8, MAZE, MAZE_len);
+    ESP_LOGI(TAG, "LOADED ROM TO RAM");
+
+    while (!is_stop)
+    {
+        keypad_key_t key = keypad_scan();
+        if (key != KEY_NONE)
+        {
+            ESP_LOGI(TAG, "key press: %d", key);
+
+            keypress(chip8, (int)(key - 1), true);
+        }
+        for (int e = 0; e < 10; e++)
+        {
+            fetch_op(chip8);
+            exec_op(chip8);
+        }
+        update_timers(chip8);
+
+        if (chip8->is_drawing)
+        {
+
+            chip8->is_drawing = false;
+
+            display_mux_lock();
+            bool *p = chip8->screen;
+
+            for (int y = 0; y < SCREEN_HEIGHT; y++)
+            {
+                int sy = y * 2;
+
+                for (int x = 0; x < SCREEN_WIDTH; x++)
+                {
+                    int sx = x * 2;
+                    int color = *p++;
+
+                    canvas_draw_pixel_locked(sx, sy, !color);
+                    canvas_draw_pixel_locked(sx + 1, sy, !color);
+                    canvas_draw_pixel_locked(sx, sy + 1, !color);
+                    canvas_draw_pixel_locked(sx + 1, sy + 1, !color);
+                }
+            }
+            display_mux_unlock();
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(2));
+    }
+    delete(chip8);
+    vTaskDelete(NULL);
+}
+
+void chip8_run()
+{
+    ESP_LOGI(TAG, "RUN");
+
+    is_stop = false;
+    xTaskCreate(chip8_task, "Chip8Task", 2 * 10240, NULL, 5, NULL);
+}
+
+void chip8_stop()
+{
+    ESP_LOGI(TAG, "STOP");
+    is_stop = true;
 }
