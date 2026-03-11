@@ -12,6 +12,28 @@ static uint8_t canvas_buffer[CANVAS_BUF_SIZE] __attribute__((aligned(4)));
 static lv_obj_t *canvas = NULL;
 static const char *TAG = "Canvas";
 
+void canvas_get_drawing_buf(const char *dst, size_t size)
+{
+    if (size != CANVAS_BUF_SIZE)
+    {
+        ESP_LOGE(TAG, "Wrong buf size!");
+    }
+    display_mux_lock();
+    memcpy(dst, &canvas_buffer, CANVAS_BUF_SIZE);
+    display_mux_unlock();
+}
+
+void canvas_set_drawing_buf(const char *src, size_t size)
+{
+    if (size != CANVAS_BUF_SIZE)
+    {
+        ESP_LOGE(TAG, "Wrong buf size!");
+    }
+    display_mux_lock();
+    memcpy(&canvas_buffer, src, CANVAS_BUF_SIZE);
+    lv_obj_invalidate(canvas);
+    display_mux_unlock();
+}
 /*
 
     Canvas drawing

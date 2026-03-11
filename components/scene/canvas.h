@@ -15,6 +15,10 @@ typedef struct canvas_pixel
 } canvas_pixel_t;
 
 lv_obj_t *canvas_init(void);
+
+void canvas_get_drawing_buf(const char *dst, size_t size);
+void canvas_set_drawing_buf(const char *src, size_t size);
+
 void canvas_draw_pixel(int32_t x, int32_t y, bool color_index);
 void canvas_draw_pixel_locked(int32_t x, int32_t y, bool color_index);
 void canvas_draw_pixels(canvas_pixel_t *pixels, size_t count);
