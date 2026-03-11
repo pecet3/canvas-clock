@@ -202,7 +202,20 @@ storage_t *storage_ptr()
 {
     return &storage;
 }
+#include "chip8_roms.c"
 
+storage_chip8_rom_t *storage_get_chip8_rom(const char *name)
+{
+    for (int i = 0; i < 68; i++)
+    {
+        if (strcmp(name, roms[i].name) == 0)
+        {
+            ESP_LOGI(TAG, "Seeking ROM: %s,Found ROM: %s", name, roms[i].name);
+            return &roms[i];
+        }
+    }
+    return NULL;
+}
 void storage_init()
 {
     spiffs_init();

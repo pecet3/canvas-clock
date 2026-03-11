@@ -3,7 +3,7 @@
 #include "esp_log.h"
 #include "data_fetcher.h"
 #include <stdio.h>
-#include "font/font.h"
+#include "font.h"
 static const char *TAG = "currency";
 
 static lv_obj_t *currency_screen;

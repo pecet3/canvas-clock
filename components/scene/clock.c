@@ -3,7 +3,7 @@
 #include "esp_log.h"
 #include <time.h>
 #include <stdio.h>
-#include "font/font.h"
+#include "font.h"
 static const char *TAG = "Clock";
 static lv_obj_t *clock_screen;
 static lv_obj_t *clock_label;

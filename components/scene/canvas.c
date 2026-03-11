@@ -231,11 +231,11 @@ lv_obj_t *canvas_init(void)
     display_mux_lock();
     canvas = lv_canvas_create(lv_scr_act());
     lv_canvas_set_buffer(canvas, canvas_buffer, CANVAS_WIDTH, CANVAS_HEIGHT, LV_COLOR_FORMAT_I1);
-    lv_canvas_set_palette(canvas, 0, lv_color_to_32(lv_color_hex(0x000000), LV_OPA_COVER));
-    lv_canvas_set_palette(canvas, 1, lv_color_to_32(lv_color_hex(0xFFFFFF), LV_OPA_COVER));
+    lv_canvas_set_palette(canvas, 1, lv_color_to_32(lv_color_hex(0x000000), LV_OPA_COVER));
+    lv_canvas_set_palette(canvas, 0, lv_color_to_32(lv_color_hex(0xFFFFFF), LV_OPA_COVER));
     lv_obj_center(canvas);
 
-    lv_canvas_fill_bg(canvas, lv_color_hex(1), LV_OPA_COVER);
+    lv_canvas_fill_bg(canvas, lv_color_hex(0), LV_OPA_COVER);
     display_mux_unlock();
     ESP_LOG_BUFFER_HEX(TAG, canvas_buffer, CANVAS_BUF_SIZE);
     ESP_LOGI(TAG, "initialized");

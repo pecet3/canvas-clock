@@ -35,25 +35,14 @@ void app_main(void)
 
     scene_event(SCENE_SET_CHIP8, NULL);
 
-    // while (1)
-    // {
-    //     keypad_key_t key = keypad_scan();
-    //     printf("%d\n", key);
-    //     if (key != KEY_NONE)
-    //     {
-    //         if (key == KEY_1)
-    //         {
-    //             printf("Pressed 1\n");
-    //             scene_event(SCENE_SET_CHIP8, NULL);
-    //         }
+    while (1)
+    {
+        keypad_key_t key = keypad_scan();
+        if (key != KEY_NONE)
+        {
+            printf("%d\n", key);
+        }
 
-    //         if (key == KEY_HASH)
-    //         {
-    //             scene_event(SCENE_SET_MAIN, NULL);
-    //             printf("# pressed\n");
-    //         }
-    //     }
-
-    //     vTaskDelay(pdMS_TO_TICKS(100));
-    // }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }
