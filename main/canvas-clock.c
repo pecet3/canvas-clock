@@ -38,7 +38,7 @@ void app_main(void)
     // while (1)
     // {
     //     keypad_key_t key = keypad_scan();
-
+    //     printf("%d\n", key);
     //     if (key != KEY_NONE)
     //     {
     //         if (key == KEY_1)

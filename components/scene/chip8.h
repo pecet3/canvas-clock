@@ -29,7 +29,7 @@ typedef struct chip8
     uint8_t delay_tim;
     uint8_t sound_tim;
 
-    uint8_t keypad[NUM_KEYS];
+    bool keypad[NUM_KEYS];
 
     bool is_drawing;
 
