@@ -19,7 +19,7 @@ void canvas_get_drawing_buf(const char *dst, size_t size)
         ESP_LOGE(TAG, "Wrong buf size!");
     }
     display_mux_lock();
-    memcpy(dst, &canvas_buffer, CANVAS_BUF_SIZE);
+    memcpy(dst, canvas_buffer, CANVAS_BUF_SIZE);
     display_mux_unlock();
 }
 
@@ -30,7 +30,7 @@ void canvas_set_drawing_buf(const char *src, size_t size)
         ESP_LOGE(TAG, "Wrong buf size!");
     }
     display_mux_lock();
-    memcpy(&canvas_buffer, src, CANVAS_BUF_SIZE);
+    memcpy(canvas_buffer, src, CANVAS_BUF_SIZE);
     lv_obj_invalidate(canvas);
     display_mux_unlock();
 }
@@ -237,6 +237,7 @@ lv_obj_t *canvas_init(void)
 
     lv_canvas_fill_bg(canvas, lv_color_hex(1), LV_OPA_COVER);
     display_mux_unlock();
+    ESP_LOG_BUFFER_HEX(TAG, canvas_buffer, CANVAS_BUF_SIZE);
     ESP_LOGI(TAG, "initialized");
     return canvas;
 }

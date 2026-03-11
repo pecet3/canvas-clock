@@ -443,10 +443,30 @@ char pong[] = {
     0xdb, 0xc1, 0x7c, 0x01, 0x3c, 0x20, 0x12, 0xfc, 0x6a, 0x00, 0x00, 0xee};
 unsigned int pong_len = 264;
 
+static uint16_t expand_table[256];
+
+static void chip8_expand_init()
+{
+    for (int i = 0; i < 256; i++)
+    {
+        uint16_t out = 0;
+
+        for (int b = 0; b < 8; b++)
+        {
+            if (i & (1 << (7 - b)))
+            {
+                out |= 3 << (14 - b * 2);
+            }
+        }
+
+        expand_table[i] = out;
+    }
+}
+
 static volatile bool is_stop;
 static void chip8_task(void *arg)
 {
-
+    chip8_expand_init();
     chip8_t *chip8 = new();
     load_rom(chip8, pong, pong_len);
     ESP_LOGI(TAG, "LOADED ROM TO RAM");
@@ -464,7 +484,7 @@ static void chip8_task(void *arg)
             keypress(chip8, keypad_to_chip8(key), true);
         }
 
-        for (int e = 0; e < 10; e++)
+        for (int e = 0; e < 8; e++)
         {
             fetch_op(chip8);
             exec_op(chip8);
@@ -476,28 +496,42 @@ static void chip8_task(void *arg)
 
             chip8->is_drawing = false;
 
-            display_mux_lock();
+            uint8_t buf[CANVAS_BUF_SIZE];
+            canvas_get_drawing_buf((char *)(buf), CANVAS_BUF_SIZE);
+
+            int stride = CANVAS_WIDTH / 8;
             bool *p = chip8->screen;
 
-            for (int y = 0; y < SCREEN_HEIGHT; y++)
+            for (int y = 0; y < 32; y++)
             {
-                int sy = y * 2;
+                int dy = y * 2;
 
-                for (int x = 0; x < SCREEN_WIDTH; x++)
+                uint8_t *row1 = &buf[8 + dy * stride];
+                uint8_t *row2 = &buf[8 + (dy + 1) * stride];
+
+                for (int x = 0; x < 64; x += 8)
                 {
-                    int sx = x * 2;
-                    int color = *p++;
+                    uint8_t sprite = 0;
 
-                    canvas_draw_pixel_locked(sx, sy, !color);
-                    canvas_draw_pixel_locked(sx + 1, sy, !color);
-                    canvas_draw_pixel_locked(sx, sy + 1, !color);
-                    canvas_draw_pixel_locked(sx + 1, sy + 1, !color);
+                    for (int i = 0; i < 8; i++)
+                        sprite |= (*p++ << (7 - i));
+
+                    uint16_t expanded = expand_table[sprite];
+
+                    int bx = (x * 2) >> 3;
+
+                    row1[bx] = expanded >> 8;
+                    row1[bx + 1] = expanded & 0xFF;
+
+                    row2[bx] = expanded >> 8;
+                    row2[bx + 1] = expanded & 0xFF;
                 }
             }
-            display_mux_unlock();
+
+            canvas_set_drawing_buf((char *)buf, sizeof(buf));
         }
 
-        vTaskDelay(pdMS_TO_TICKS(2));
+        vTaskDelay(pdMS_TO_TICKS(16));
     }
     delete(chip8);
     vTaskDelete(NULL);
