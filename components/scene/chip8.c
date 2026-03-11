@@ -318,6 +318,7 @@ void exec_op(chip8_t *self)
         break;
     }
 }
+
 int keypad_to_chip8(keypad_key_t key)
 {
     switch (key)
@@ -329,23 +330,23 @@ int keypad_to_chip8(keypad_key_t key)
     case KEY_3:
         return 0x3;
     case KEY_4:
-        return 0xC;
+        return 0x4;
 
     case KEY_5:
-        return 0x4;
-    case KEY_6:
         return 0x5;
-    case KEY_7:
+    case KEY_6:
         return 0x6;
+    case KEY_7:
+        return 0x7;
     case KEY_8:
-        return 0xD;
+        return 0x8;
 
     case KEY_9:
-        return 0x7;
-    case KEY_A:
-        return 0x8;
-    case KEY_B:
         return 0x9;
+    case KEY_A:
+        return 0xC;
+    case KEY_B:
+        return 0xD;
     case KEY_C:
         return 0xE;
 
@@ -468,7 +469,7 @@ static void chip8_task(void *arg)
 {
     chip8_expand_init();
     chip8_t *chip8 = new();
-    load_rom(chip8, pong, pong_len);
+    load_rom(chip8, keypadtest, keypadtest_len);
     ESP_LOGI(TAG, "LOADED ROM TO RAM");
 
     while (!is_stop)
